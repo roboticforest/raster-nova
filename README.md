@@ -3,7 +3,7 @@
 This project depends on SDL3 (Version 3.3.0 or newer).
 
 - Clone this repo
-`git clone https://github.com/youruser/yourproject.git`
+`git clone https://github.com/roboticforest/raster-nova.git`
 
 - Clone SDL3 into the vendor folder
 `git clone https://github.com/libsdl-org/SDL.git vendor/SDL3`
