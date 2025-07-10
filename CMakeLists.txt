@@ -6,45 +6,79 @@
 #          file, You can obtain one at https://mozilla.org/MPL/2.0/.
 ################################################################################
 
+cmake_minimum_required(VERSION 3.31)
+project(raster-nova VERSION 0.1)
+
+message("================================================================================")
+message("| RASTER NOVA                                                                  |")
+message("================================================================================")
+
 #########################
 # Basic Details
-#########################
 
 # Cross-platform project!
 # Supported platforms:
 # - Windows 11.
 # - Linux Mint (Ubuntu/Debian based systems).
 
-cmake_minimum_required(VERSION 3.19)
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-project(raster-nova VERSION 0.1)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 
 #########################
 # Dependencies
-#########################
 
-# SDL3 (Version 3.3.0 or newer)
+# Simple DirectMedia Layer 3 (SDL3).
+message(CHECK_START "SDL3 source installed as vendor")
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/vendor/SDL3/CMakeLists.txt")
+    message(CHECK_FAIL "NOT installed")
+    message(FATAL_ERROR "SDL3 source not found!
+    SDL3 (version 3.3.0 or higher) is required! Expected at: ${CMAKE_SOURCE_DIR}/vendor/SDL3
+    To install, run: `git clone https://github.com/libsdl-org/SDL.git vendor/SDL3`
+    For more details visit SDL3's official GitHub at:
+    https://github.com/libsdl-org/SDL/blob/main/INSTALL.md
+    and follow the CMake installation instructions."
+    )
+else ()
+    message(CHECK_PASS "installed")
+endif()
+
+message("----- SDL3 - Start of CMake output ---------------------------------------------")
 add_subdirectory(vendor/SDL3 EXCLUDE_FROM_ALL)
+message("----- SDL3 - End of CMake output -----------------------------------------------")
 
 #########################
 # Build Settings
-#########################
 
-file(GLOB SOURCES src/*.cpp)
-file(GLOB HEADERS inc/*.h)
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+add_executable(${PROJECT_NAME})
+target_sources(${PROJECT_NAME}
+        PRIVATE
+        src/main.cpp
+
+        PUBLIC FILE_SET cpp_modules
+        TYPE CXX_MODULES
+        FILES
+        src/greet.cppm
+        src/example.cppm
+)
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message("----- Linux compilation options ------------------------------------------------")
+    message("-- None needed currently.")
+endif ()
 
 if (WIN32)
-    # Prevent a console window from opening.
+    message("----- Windows compilation options ----------------------------------------------")
+    message("-- Suppress debug console window.")
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
 endif ()
 
 #########################
 # Linking Settings
-#########################
 
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
+
+message("===== Config Complete ==========================================================")
