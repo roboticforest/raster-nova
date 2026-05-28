@@ -6,14 +6,14 @@
 #          file, You can obtain one at https://mozilla.org/MPL/2.0/.
 ################################################################################
 
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 4.0)
 project(raster-nova VERSION 0.1)
 
-message("================================================================================")
-message("| RASTER NOVA                                                                  |")
-message("================================================================================")
+message("╔════════════════════════════════════════════════════════════════════╗")
+message("║ RASTER NOVA                                                        ║")
+message("╚════════════════════════════════════════════════════════════════════╝")
 
-#########################
+################################################################################
 # Basic Details
 
 # Cross-platform project!
@@ -28,7 +28,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 
-#########################
+################################################################################
 # Dependencies
 
 # Simple DirectMedia Layer 3 (SDL3).
@@ -46,11 +46,10 @@ else ()
     message(CHECK_PASS "installed")
 endif()
 
-message("----- SDL3 - Start of CMake output ---------------------------------------------")
+message("● SDL3 - Start of CMake Output ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")
 add_subdirectory(vendor/SDL3 EXCLUDE_FROM_ALL)
-message("----- SDL3 - End of CMake output -----------------------------------------------")
 
-#########################
+################################################################################
 # Build Settings
 
 add_executable(${PROJECT_NAME})
@@ -66,19 +65,21 @@ target_sources(${PROJECT_NAME}
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    message("----- Linux compilation options ------------------------------------------------")
-    message("-- None needed currently.")
+    message("● Linux OS - Start of CMake Output ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")
+    message(STATUS "None needed currently.")
 endif ()
 
 if (WIN32)
-    message("----- Windows compilation options ----------------------------------------------")
-    message("-- Suppress debug console window.")
+    message("● Windows OS - Start of CMake Output ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")
+    message(STATUS "Suppress SDL3 debug console window.")
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
 endif ()
 
-#########################
+################################################################################
 # Linking Settings
 
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
 
-message("===== Config Complete ==========================================================")
+message("╔════════════════════════════════════════════════════════════════════╗")
+message("║ RASTER NOVA - CMake Config Complete                                ║")
+message("╚════════════════════════════════════════════════════════════════════╝")
