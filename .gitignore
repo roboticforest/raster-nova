@@ -3,3 +3,8 @@
 build
 vendor
 
+# Files
+*.bkp
+*.bak
+*.backup
+
