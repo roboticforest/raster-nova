@@ -33,10 +33,10 @@ public:
     Canvas& operator=(const Canvas&) = delete;
 
     /**
-     * @brief Placeholder for setting a pixel; currently has no effect.
+     * @brief Replaces a pixel with a packed RGBA8888 color; ignores out-of-bounds coordinates.
      * @param x Horizontal pixel coordinate.
      * @param y Vertical pixel coordinate.
-     * @param c Pixel color.
+     * @param c Pixel color; only the low eight bits of each channel are used.
      */
     void set_pixel(int x, int y, Color c);
 
