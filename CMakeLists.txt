@@ -56,12 +56,12 @@ add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
         PRIVATE
         src/main.cpp
+        src/canvas.cpp
 
         PUBLIC FILE_SET cpp_modules
         TYPE CXX_MODULES
         FILES
-        src/greet.cppm
-        src/example.cppm
+        src/canvas.cppm
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")

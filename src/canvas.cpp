@@ -2,13 +2,15 @@ module;
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <limits>
 #include <new>
+#include <SDL3/SDL.h>
 
 module canvas;
 
-Canvas::Canvas(unsigned int pixel_width, unsigned int pixel_height)
-    : _pixel_width(pixel_width), _pixel_height(pixel_height) {
+Canvas::Canvas(SDL_Renderer& renderer, unsigned int pixel_width, unsigned int pixel_height)
+    : _renderer(renderer), _pixel_width(pixel_width), _pixel_height(pixel_height) {
     const auto width = static_cast<std::size_t>(pixel_width);
     const auto height = static_cast<std::size_t>(pixel_height);
     if (height != 0 && width > std::numeric_limits<std::size_t>::max() / sizeof(std::uint32_t) / height) {
@@ -20,6 +22,7 @@ Canvas::Canvas(unsigned int pixel_width, unsigned int pixel_height)
 }
 
 Canvas::~Canvas() {
+    SDL_DestroyTexture(_texture);
     delete[] _pixels;
 }
 
@@ -35,5 +38,49 @@ void Canvas::set_pixel(int x, int y, Color c) {
     const auto alpha = static_cast<std::uint32_t>(c.alpha) & 0xFFu;
     const auto pixel_index = static_cast<std::size_t>(y) * _pixel_width + static_cast<std::size_t>(x);
     _pixels[pixel_index] = (red << 24) | (green << 16) | (blue << 8) | alpha;
+}
+
+bool Canvas::show() {
+    if (_pixel_width == 0 || _pixel_height == 0) {
+        return true;
+    }
+
+    if (_texture == nullptr) {
+        const auto max_dimension = static_cast<unsigned int>(std::numeric_limits<int>::max());
+        if (_pixel_width > max_dimension || _pixel_height > max_dimension) {
+            return SDL_SetError("Canvas dimensions exceed SDL texture dimension limits.");
+        }
+
+        _texture = SDL_CreateTexture(&_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
+                                    static_cast<int>(_pixel_width), static_cast<int>(_pixel_height));
+        if (_texture == nullptr) {
+            return false;
+        }
+        if (!SDL_SetTextureBlendMode(_texture, SDL_BLENDMODE_NONE)
+            || !SDL_SetTextureScaleMode(_texture, SDL_SCALEMODE_NEAREST)) {
+            SDL_DestroyTexture(_texture);
+            _texture = nullptr;
+            return false;
+        }
+    }
+
+    void* texture_pixels = nullptr;
+    int pitch = 0;
+    if (!SDL_LockTexture(_texture, nullptr, &texture_pixels, &pitch)) {
+        return false;
+    }
+
+    const auto row_size = static_cast<std::size_t>(_pixel_width) * sizeof(std::uint32_t);
+    for (std::size_t y = 0; y < _pixel_height; ++y) {
+        std::memcpy(static_cast<unsigned char*>(texture_pixels) + y * pitch,
+                    _pixels + y * _pixel_width, row_size);
+    }
+    SDL_UnlockTexture(_texture);
+
+    return SDL_SetRenderTarget(&_renderer, nullptr)
+        && SDL_SetRenderDrawColor(&_renderer, 0, 0, 0, 255)
+        && SDL_RenderClear(&_renderer)
+        && SDL_RenderTexture(&_renderer, _texture, nullptr, nullptr)
+        && SDL_RenderPresent(&_renderer);
 }
 
