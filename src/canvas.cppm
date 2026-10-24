@@ -17,12 +17,12 @@ export class Canvas {
 public:
     /**
      * @brief Allocates a zero-initialized buffer of packed RGBA8888 pixels.
-     * @param pixel_width Width in pixels.
-     * @param pixel_height Height in pixels.
-     * @throws std::invalid_argument If either dimension is not positive.
-     * @throws std::length_error If the buffer size would overflow.
+     * @param pixel_width Width in pixels; may be zero.
+     * @param pixel_height Height in pixels; may be zero.
+     * @throws std::bad_array_new_length If the buffer size would overflow.
+     * @throws std::bad_alloc If memory allocation fails.
      */
-    Canvas(int pixel_width, int pixel_height);
+    Canvas(unsigned int pixel_width, unsigned int pixel_height);
 
     /** @brief Releases the pixel buffer. */
     ~Canvas();
@@ -41,7 +41,7 @@ public:
     void set_pixel(int x, int y, Color c);
 
 private:
-    int _pixel_width;
-    int _pixel_height;
+    unsigned int _pixel_width;
+    unsigned int _pixel_height;
     std::uint32_t* _pixels;
 };
