@@ -80,6 +80,14 @@ endif ()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
 
+if (WIN32 AND TARGET SDL3::SDL3-shared)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:SDL3::SDL3-shared>
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    )
+endif ()
+
 message("╔════════════════════════════════════════════════════════════════════╗")
 message("║ RASTER NOVA - CMake Config Complete                                ║")
 message("╚════════════════════════════════════════════════════════════════════╝")
