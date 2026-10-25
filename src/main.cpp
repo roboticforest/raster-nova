@@ -19,7 +19,7 @@ static int run_app() {
     std::shared_ptr<SDL_Renderer> renderer;
     std::unique_ptr<Canvas> canvas;
     try {
-        window = {SDL_CreateWindow("Raster Nova", 800, 600, 0), SDL_DestroyWindow};
+        window = {SDL_CreateWindow("Raster Nova", 1600, 900, 0), SDL_DestroyWindow};
         if (!window) {
             SDL_Log("Could not create window: %s", SDL_GetError());
             return 1;
@@ -34,15 +34,19 @@ static int run_app() {
             return 1;
         }
 
-        canvas = std::make_unique<Canvas>(renderer, 200, 150);
+        canvas = std::make_unique<Canvas>(renderer, 32, 18);
     } catch (const std::exception& error) {
         SDL_Log("Could not allocate display resources: %s", error.what());
         return 1;
     }
 
-    canvas->set_pixel(99, 75, Color{255, 0, 0, 255});
-    canvas->set_pixel(100, 75, Color{0, 255, 0, 255});
-    canvas->set_pixel(101, 75, Color{0, 0, 255, 255});
+    // Draw at bounding corners to test both set_pixel() and texture scaling.
+    canvas->set_pixel(0, 0, Color{255, 0, 0, 255});
+    canvas->set_pixel(1, 0, Color{0, 255, 0, 255});
+    canvas->set_pixel(2, 0, Color{0, 0, 255, 255});
+    canvas->set_pixel(29, 17, Color{255, 0, 0, 255});
+    canvas->set_pixel(30, 17, Color{0, 255, 0, 255});
+    canvas->set_pixel(31, 17, Color{0, 0, 255, 255});
 
     int exit_code = 0;
     while (true) {
