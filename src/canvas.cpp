@@ -46,16 +46,15 @@ void Canvas::use_centered_coordinates(bool enabled) {
 }
 
 void Canvas::set_pixel(double x, double y, Color c) {
-    const double coordinate_min = _centered_coordinates ? -0.5 : 0.0;
-    const double coordinate_max = _centered_coordinates ? 0.5 : 1.0;
-    if (!(x >= coordinate_min && x <= coordinate_max && y >= coordinate_min && y <= coordinate_max)
+    const double coordinate_min = _centered_coordinates ? -1.0 : 0.0;
+    if (!(x >= coordinate_min && x <= 1.0 && y >= coordinate_min && y <= 1.0)
         || _pixel_width == 0 || _pixel_height == 0) {
         return;
     }
 
     if (_centered_coordinates) {
-        x += 0.5;
-        y += 0.5;
+        x = (x + 1.0) / 2.0;
+        y = (y + 1.0) / 2.0;
     }
     const auto pixel_x = static_cast<unsigned int>(std::round(x * (_pixel_width - 1)));
     auto pixel_y = static_cast<unsigned int>(std::round(y * (_pixel_height - 1)));

@@ -41,8 +41,8 @@ public:
 
     /**
      * @brief Composites a pixel at normalized image coordinates, rounded to the nearest pixel.
-     * @param x Horizontal coordinate in [0, 1], or [-0.5, 0.5] in centered mode.
-     * @param y Vertical coordinate in [0, 1], or [-0.5, 0.5] in centered mode.
+     * @param x Horizontal coordinate in [0, 1], or [-1, 1] in centered mode.
+     * @param y Vertical coordinate in [0, 1], or [-1, 1] in centered mode.
      * @param c Foreground color; the existing pixel is the background.
      * @note Nonfinite or out-of-range coordinates and empty canvases are ignored.
      *       Endpoints map to the outermost pixels. Centered mode uses Y-up coordinates,
