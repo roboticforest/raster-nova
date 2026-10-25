@@ -33,12 +33,8 @@ void Canvas::set_pixel(int x, int y, Color c) {
         return;
     }
 
-    const auto red = static_cast<std::uint32_t>(c.red) & 0xFFu;
-    const auto green = static_cast<std::uint32_t>(c.green) & 0xFFu;
-    const auto blue = static_cast<std::uint32_t>(c.blue) & 0xFFu;
-    const auto alpha = static_cast<std::uint32_t>(c.alpha) & 0xFFu;
     const auto pixel_index = static_cast<std::size_t>(y) * _pixel_width + static_cast<std::size_t>(x);
-    _pixels[pixel_index] = (red << 24) | (green << 16) | (blue << 8) | alpha;
+    _pixels[pixel_index] = c.rgba();
 }
 
 bool Canvas::show() {

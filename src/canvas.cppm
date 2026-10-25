@@ -34,7 +34,7 @@ public:
      * @brief Replaces a pixel with a packed RGBA8888 color; ignores out-of-bounds coordinates.
      * @param x Horizontal pixel coordinate.
      * @param y Vertical pixel coordinate.
-     * @param c Pixel color; only the low eight bits of each channel are used.
+     * @param c Pixel color; replaces the existing pixel without blending.
      */
     void set_pixel(int x, int y, Color c);
 
