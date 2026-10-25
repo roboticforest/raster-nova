@@ -139,12 +139,9 @@ int main() {
             Canvas canvas{renderer, width, height};
             for(const bool centered : {false, true}) {
                 canvas.use_centered_coordinates(centered);
-                num_failures += check(!canvas.to_normalized_coordinates(width, 0)
-                                      && !canvas.to_normalized_coordinates(0, height),
-                                      "Raw coordinates outside the canvas should not convert");
                 if(width == 0 || height == 0) {
-                    num_failures += check(!canvas.to_raw_pixels(0, 0) && !canvas.to_raw_pixels(0.0, 0.0),
-                                          "Empty canvases should have no pixel coordinates");
+                    canvas.set_pixel(0.0, 0.0, colors::red());
+                    num_failures += check_pixel(canvas, 0, 0, {}, "Empty canvases should have no readable pixels");
                     num_failures += check(canvas.get_pixel(0.0, 0.0).rgba() == Color{}.rgba(),
                                           "Normalized reads on empty canvases should return transparent black");
                 }
@@ -153,19 +150,17 @@ int main() {
                         const int logical_x = centered ? static_cast<int>(x) - static_cast<int>(width / 2) : static_cast<int>(x);
                         const int logical_y = centered ? static_cast<int>((height - 1) / 2) - static_cast<int>(y) : static_cast<int>(y);
                         const auto integer_pixel = canvas.to_raw_pixels(logical_x, logical_y);
-                        num_failures += check(integer_pixel && integer_pixel->x == x && integer_pixel->y == y,
+                        num_failures += check(integer_pixel.x == x && integer_pixel.y == y,
                                               "Integer coordinates should convert to the expected raw pixel");
                         canvas.set_pixel(logical_x, logical_y, colors::blue());
                         num_failures += check_pixel(canvas, logical_x, logical_y, colors::blue(),
                                                     "Integer reads and writes should select the same pixel");
                         const auto normalized = canvas.to_normalized_coordinates(x, y);
-                        num_failures += check(normalized.has_value(), "Every valid pixel should convert to normalized coordinates");
-                        if(!normalized) { continue; }
-                        const auto pixel = canvas.to_raw_pixels(normalized->x, normalized->y);
-                        num_failures += check(pixel && pixel->x == x && pixel->y == y,
+                        const auto pixel = canvas.to_raw_pixels(normalized.x, normalized.y);
+                        num_failures += check(pixel.x == x && pixel.y == y,
                                               "Normalized coordinates should round-trip to the original pixel");
-                        canvas.set_pixel(normalized->x, normalized->y, colors::orange());
-                        num_failures += check(canvas.get_pixel(normalized->x, normalized->y).rgba() == colors::orange().rgba(),
+                        canvas.set_pixel(normalized.x, normalized.y, colors::orange());
+                        num_failures += check(canvas.get_pixel(normalized.x, normalized.y).rgba() == colors::orange().rgba(),
                                               "Normalized reads and writes should select the same pixel");
                         canvas.use_centered_coordinates(false);
                         num_failures += check_pixel(canvas, x, y, colors::orange(), "Converted coordinates should select the expected raw pixel");
@@ -181,13 +176,17 @@ int main() {
         for(const bool centered : {false, true}) {
             canvas.use_centered_coordinates(centered);
             const auto pixel = canvas.to_raw_pixels(0.25, 0.75);
-            num_failures += check(pixel && pixel->x == (centered ? 2u : 1u) && pixel->y == (centered ? 0u : 2u),
+            num_failures += check(pixel.x == (centered ? 2 : 1) && pixel.y == (centered ? 0 : 2),
                                   "Fractional coordinates should retain the existing rounding and axis directions");
+            const auto outside = canvas.to_raw_pixels(-3.0, 3.0);
+            num_failures += check(outside.x == (centered ? -3 : -9) && outside.y == (centered ? -3 : 9),
+                                  "Coordinate conversions should extrapolate beyond the canvas without clipping");
+            const auto normalized = canvas.to_normalized_coordinates(outside.x, outside.y);
+            num_failures += check(normalized.x == -3.0 && normalized.y == 3.0,
+                                  "Raw coordinates outside the canvas should convert back without clipping");
             canvas.set_pixel(0.25, 0.75, colors::lime());
             for(const double invalid : {-2.0, 2.0, std::numeric_limits<double>::infinity(),
                                         std::numeric_limits<double>::quiet_NaN()}) {
-                num_failures += check(!canvas.to_raw_pixels(invalid, 0.0) && !canvas.to_raw_pixels(0.0, invalid),
-                                      "Invalid normalized coordinates should not convert");
                 canvas.set_pixel(invalid, 0.0, colors::red());
                 canvas.set_pixel(0.0, invalid, colors::red());
                 num_failures += check(canvas.get_pixel(invalid, 0.0).rgba() == Color{}.rgba()
