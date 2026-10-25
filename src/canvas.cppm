@@ -41,16 +41,17 @@ public:
 
     /**
      * @brief Composites a pixel at normalized image coordinates, rounded to the nearest pixel.
-     * @param x Horizontal coordinate in [0, 1], mapping to [0, width - 1].
-     * @param y Vertical coordinate in [0, 1], mapping to [0, height - 1].
+     * @param x Horizontal coordinate in [0, 1], or [-0.5, 0.5] in centered mode.
+     * @param y Vertical coordinate in [0, 1], or [-0.5, 0.5] in centered mode.
      * @param c Foreground color; the existing pixel is the background.
      * @note Nonfinite or out-of-range coordinates and empty canvases are ignored.
-     *       Always uses raw image coordinates, independent of centered mode.
+     *       Endpoints map to the outermost pixels. Centered mode uses Y-up coordinates,
+     *       with rounding before the Y flip so (0.0, 0.0) matches the integer origin.
      */
     void set_pixel(double x, double y, Color c);
 
     /**
-     * @brief Selects centered, Y-up integer coordinates without changing existing pixels.
+     * @brief Selects centered, Y-up coordinates for both pixel overloads without changing existing pixels.
      * @param enabled True for centered coordinates, false for top-left, Y-down coordinates.
      * @note Each integer axis ranges from -floor(size / 2) through ceil(size / 2) - 1.
      *       Maps x to width / 2 + x and y to (height - 1) / 2 - y using integer division.
