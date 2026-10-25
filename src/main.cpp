@@ -49,10 +49,15 @@ static int run_app() {
     canvas->set_pixel(31, 17, colors::blue());
 
     // Alpha blending test.
-    canvas->set_pixel(10, 10, {0,0,255,127});
-    canvas->set_pixel(10, 10, {255,0,0,127});
+    canvas->set_pixel(1, 1, {0,0,255,127});
+    canvas->set_pixel(1, 1, {255,0,0,127});
 
     canvas->use_centered_coordinates();
+    canvas->set_pixel(0,0, colors::white());
+    canvas->set_pixel(-1,-1, colors::orange());
+    canvas->set_pixel(1,1, colors::red());
+    canvas->set_pixel(2,2, colors::dark_red());
+
     // Draw measurement lines.
     const Color measurement_color{255, 255, 255, 128};
     for (int x = -16; x < 16; ++x) {
@@ -60,7 +65,7 @@ static int run_app() {
             canvas->set_pixel(x, 0, measurement_color);
         }
         if (x % 5 == 0) {
-            canvas->set_pixel(x, 1, measurement_color);
+            canvas->set_pixel(x, 0, measurement_color);
         }
     }
     for (int y = -9; y < 9; ++y) {
@@ -68,9 +73,12 @@ static int run_app() {
             canvas->set_pixel(0, y, measurement_color);
         }
         if (y % 5 == 0) {
-            canvas->set_pixel(1, y, measurement_color);
+            canvas->set_pixel(0, y, measurement_color);
         }
     }
+
+    canvas->set_pixel(-1.0, -1.0, {0,255,0,127});
+    canvas->set_pixel(1.0, 1.0, {0,255,0,127});
 
     int exit_code = 0;
     while (true) {
