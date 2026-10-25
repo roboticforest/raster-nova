@@ -31,10 +31,10 @@ public:
     Canvas& operator=(const Canvas&) = delete;
 
     /**
-     * @brief Replaces a pixel with a packed RGBA8888 color; ignores out-of-bounds coordinates.
+     * @brief Composites a color over a pixel; ignores out-of-bounds coordinates.
      * @param x Horizontal pixel coordinate.
      * @param y Vertical pixel coordinate.
-     * @param c Pixel color; replaces the existing pixel without blending.
+     * @param c Foreground color; the existing pixel is the background.
      */
     void set_pixel(int x, int y, Color c);
 

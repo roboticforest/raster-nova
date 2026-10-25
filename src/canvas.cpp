@@ -34,7 +34,7 @@ void Canvas::set_pixel(int x, int y, Color c) {
     }
 
     const auto pixel_index = static_cast<std::size_t>(y) * _pixel_width + static_cast<std::size_t>(x);
-    _pixels[pixel_index] = c.rgba();
+    _pixels[pixel_index] = c.over(Color::from_rgba(_pixels[pixel_index])).rgba();
 }
 
 bool Canvas::show() {
@@ -53,7 +53,7 @@ bool Canvas::show() {
         if (_texture == nullptr) {
             return false;
         }
-        if (!SDL_SetTextureBlendMode(_texture, SDL_BLENDMODE_NONE)
+        if (!SDL_SetTextureBlendMode(_texture, SDL_BLENDMODE_BLEND)
             || !SDL_SetTextureScaleMode(_texture, SDL_SCALEMODE_NEAREST)) {
             SDL_DestroyTexture(_texture);
             _texture = nullptr;
