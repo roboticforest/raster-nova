@@ -6,13 +6,7 @@ module;
 
 export module canvas;
 
-/** @brief Temporary RGBA color until the Color module is introduced. */
-export struct Color {
-    int red;
-    int green;
-    int blue;
-    int alpha;
-};
+export import Color;
 
 /** @brief Canvas interface for setting individual pixels. */
 export class Canvas {
