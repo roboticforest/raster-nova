@@ -41,12 +41,12 @@ static int run_app() {
     }
 
     // Draw at bounding corners to test both set_pixel() and texture scaling.
-    canvas->set_pixel(0, 0, Color{255, 0, 0, 255});
-    canvas->set_pixel(1, 0, Color{0, 255, 0, 255});
-    canvas->set_pixel(2, 0, Color{0, 0, 255, 255});
-    canvas->set_pixel(29, 17, Color{255, 0, 0, 255});
-    canvas->set_pixel(30, 17, Color{0, 255, 0, 255});
-    canvas->set_pixel(31, 17, Color{0, 0, 255, 255});
+    canvas->set_pixel(0, 0, colors::red());
+    canvas->set_pixel(1, 0, colors::lime());
+    canvas->set_pixel(2, 0, colors::blue());
+    canvas->set_pixel(29, 17, colors::red());
+    canvas->set_pixel(30, 17, colors::lime());
+    canvas->set_pixel(31, 17, colors::blue());
 
     int exit_code = 0;
     while (true) {
