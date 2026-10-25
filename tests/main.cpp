@@ -71,6 +71,32 @@ int main() {
         num_failures += check(canvas.show(), "Presenting through the software renderer succeeds");
     }
 
+    std::cout << "Zero-size canvas\n";
+    {
+        Canvas canvas{renderer, 0, 0};
+        canvas.set_pixel(0, 0, colors::red());
+        num_failures += check_pixel(canvas, 0, 0, {}, "Drawing on an empty canvas stores no pixel");
+        num_failures += check(canvas.show(), "Showing an empty canvas succeeds");
+    }
+
+    std::cout << "Out-of-bounds pixels\n";
+    {
+        Canvas canvas{renderer, 3, 2};
+        canvas.set_pixel(1, 0, colors::lime());
+        canvas.set_pixel(-1, 0, colors::red());
+        canvas.set_pixel(3, 0, colors::red());
+        canvas.set_pixel(0, -1, colors::red());
+        canvas.set_pixel(0, 2, colors::red());
+        for (unsigned int y = 0; y < 2; ++y) {
+            for (unsigned int x = 0; x < 3; ++x) {
+                const Color expected = x == 1 && y == 0 ? colors::lime() : Color{};
+                num_failures += check_pixel(canvas, x, y, expected, "Out-of-bounds drawing changes no pixels");
+            }
+        }
+        num_failures += check_pixel(canvas, 3, 0, {}, "Reading past the right edge returns transparent black");
+        num_failures += check_pixel(canvas, 0, 2, {}, "Reading past the bottom edge returns transparent black");
+    }
+
     std::cout << "Alpha blending\n";
     {
         Canvas canvas{renderer, 3, 2};
@@ -78,6 +104,10 @@ int main() {
         num_failures += check_pixel(canvas, 1, 0, {0, 0, 255, 127}, "Blue over transparent black");
         canvas.set_pixel(1, 0, {255, 0, 0, 127});
         num_failures += check_pixel(canvas, 1, 0, {170, 0, 85, 191}, "Red over translucent blue");
+        canvas.set_pixel(2, 0, {255, 0, 0, 127});
+        num_failures += check_pixel(canvas, 2, 0, {255, 0, 0, 127}, "Red over transparent black");
+        canvas.set_pixel(2, 0, {0, 0, 255, 127});
+        num_failures += check_pixel(canvas, 2, 0, {85, 0, 170, 191}, "Blue over translucent red");
     }
 
     std::cout << "Centered and normalized coordinates\n";
