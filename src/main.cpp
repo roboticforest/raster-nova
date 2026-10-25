@@ -52,6 +52,26 @@ static int run_app() {
     canvas->set_pixel(10, 10, {0,0,255,127});
     canvas->set_pixel(10, 10, {255,0,0,127});
 
+    canvas->use_centered_coordinates();
+    // Draw measurement lines.
+    const Color measurement_color{255, 255, 255, 128};
+    for (int x = -16; x < 16; ++x) {
+        if (x % 2 == 0 || x % 5 == 0) {
+            canvas->set_pixel(x, 0, measurement_color);
+        }
+        if (x % 5 == 0) {
+            canvas->set_pixel(x, 1, measurement_color);
+        }
+    }
+    for (int y = -9; y < 9; ++y) {
+        if (y % 2 == 0 || y % 5 == 0) {
+            canvas->set_pixel(0, y, measurement_color);
+        }
+        if (y % 5 == 0) {
+            canvas->set_pixel(1, y, measurement_color);
+        }
+    }
+
     int exit_code = 0;
     while (true) {
         if (!canvas->show()) {
