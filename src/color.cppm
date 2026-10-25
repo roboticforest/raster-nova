@@ -1,6 +1,6 @@
 /**
  * @author David Vitez (AKA: Robotic Forest)
- * @copyright All rights reserved © 2023 David Vitez
+ * @copyright All rights reserved © 2026 David Vitez
  * @par License:
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -63,7 +63,7 @@ public:
      * @note Composites stored RGB channels directly, without color-space conversion.
      *       Channels and alpha are rounded to the nearest byte value.
      */
-    constexpr Color over(Color background) const noexcept {
+    constexpr Color blend_over(Color background) const noexcept {
         if (alpha() == 0) {
             return background;
         }

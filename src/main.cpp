@@ -48,6 +48,10 @@ static int run_app() {
     canvas->set_pixel(30, 17, colors::lime());
     canvas->set_pixel(31, 17, colors::blue());
 
+    // Alpha blending test.
+    canvas->set_pixel(10, 10, {0,0,255,127});
+    canvas->set_pixel(10, 10, {255,0,0,127});
+
     int exit_code = 0;
     while (true) {
         if (!canvas->show()) {

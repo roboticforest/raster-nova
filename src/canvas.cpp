@@ -34,7 +34,7 @@ void Canvas::set_pixel(int x, int y, Color c) {
     }
 
     const auto pixel_index = static_cast<std::size_t>(y) * _pixel_width + static_cast<std::size_t>(x);
-    _pixels[pixel_index] = c.over(Color::from_rgba(_pixels[pixel_index])).rgba();
+    _pixels[pixel_index] = c.blend_over(Color::from_rgba(_pixels[pixel_index])).rgba();
 }
 
 bool Canvas::show() {
