@@ -9,6 +9,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <exception>
+#include <optional>
 
 import canvas;
 
@@ -37,35 +38,41 @@ int main(int num_args, char** args) {
         return 1;
     }
 
-    int exit_code = 0;
+    std::optional<Canvas> canvas;
     try {
-        Canvas canvas(*renderer, 200, 150);
-        canvas.set_pixel(99, 75, Color{255, 0, 0, 255});
-        canvas.set_pixel(100, 75, Color{0, 255, 0, 255});
-        canvas.set_pixel(101, 75, Color{0, 0, 255, 255});
-
-        while (true) {
-            if (!canvas.show()) {
-                SDL_Log("Could not show canvas: %s", SDL_GetError());
-                exit_code = 1;
-                break;
-            }
-
-            SDL_Event event;
-            if (!SDL_WaitEvent(&event)) {
-                SDL_Log("Could not wait for an event: %s", SDL_GetError());
-                exit_code = 1;
-                break;
-            }
-            if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
-                break;
-            }
-        }
+        canvas.emplace(*renderer, 200, 150);
     } catch (const std::exception& error) {
         SDL_Log("Could not allocate canvas: %s", error.what());
-        exit_code = 1;
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
     }
 
+    canvas->set_pixel(99, 75, Color{255, 0, 0, 255});
+    canvas->set_pixel(100, 75, Color{0, 255, 0, 255});
+    canvas->set_pixel(101, 75, Color{0, 0, 255, 255});
+
+    int exit_code = 0;
+    while (true) {
+        if (!canvas->show()) {
+            SDL_Log("Could not show canvas: %s", SDL_GetError());
+            exit_code = 1;
+            break;
+        }
+
+        SDL_Event event;
+        if (!SDL_WaitEvent(&event)) {
+            SDL_Log("Could not wait for an event: %s", SDL_GetError());
+            exit_code = 1;
+            break;
+        }
+        if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
+            break;
+        }
+    }
+
+    canvas.reset();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
