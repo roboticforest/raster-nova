@@ -1,4 +1,8 @@
 # Project Raster Nova
+
+Before tagging a release milestone, update the `project()` version in
+`CMakeLists.txt` to match the new Git tag.
+
 ## Build and Installation
 To install and build this project you need to:
 - Clone this repo.
