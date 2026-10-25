@@ -1,6 +1,7 @@
 module;
 
 #include <cstdint>
+#include <memory>
 #include <SDL3/SDL_render.h>
 
 export module canvas;
@@ -18,13 +19,14 @@ export class Canvas {
 public:
     /**
      * @brief Allocates a zero-initialized buffer of packed RGBA8888 pixels.
-     * @param renderer Window renderer; must outlive this canvas.
+     * @param renderer Shared ownership of the window renderer and its lifetime dependencies.
+     * @pre renderer is not null.
      * @param pixel_width Width in pixels; may be zero.
      * @param pixel_height Height in pixels; may be zero.
      * @throws std::bad_array_new_length If the buffer size would overflow.
      * @throws std::bad_alloc If memory allocation fails.
      */
-    Canvas(SDL_Renderer& renderer, unsigned int pixel_width, unsigned int pixel_height);
+    Canvas(std::shared_ptr<SDL_Renderer> renderer, unsigned int pixel_width, unsigned int pixel_height);
 
     /** @brief Releases the pixel buffer and texture before the renderer is destroyed. */
     ~Canvas();
@@ -50,7 +52,7 @@ public:
     bool show();
 
 private:
-    SDL_Renderer& _renderer;
+    std::shared_ptr<SDL_Renderer> _renderer;
     SDL_Texture* _texture = nullptr;
     unsigned int _pixel_width;
     unsigned int _pixel_height;

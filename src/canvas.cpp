@@ -5,12 +5,13 @@ module;
 #include <cstring>
 #include <limits>
 #include <new>
+#include <utility>
 #include <SDL3/SDL.h>
 
 module canvas;
 
-Canvas::Canvas(SDL_Renderer& renderer, unsigned int pixel_width, unsigned int pixel_height)
-    : _renderer(renderer), _pixel_width(pixel_width), _pixel_height(pixel_height) {
+Canvas::Canvas(std::shared_ptr<SDL_Renderer> renderer, unsigned int pixel_width, unsigned int pixel_height)
+    : _renderer(std::move(renderer)), _pixel_width(pixel_width), _pixel_height(pixel_height) {
     const auto width = static_cast<std::size_t>(pixel_width);
     const auto height = static_cast<std::size_t>(pixel_height);
     if (height != 0 && width > std::numeric_limits<std::size_t>::max() / sizeof(std::uint32_t) / height) {
@@ -51,7 +52,7 @@ bool Canvas::show() {
             return SDL_SetError("Canvas dimensions exceed SDL texture dimension limits.");
         }
 
-        _texture = SDL_CreateTexture(&_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
+        _texture = SDL_CreateTexture(_renderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
                                     static_cast<int>(_pixel_width), static_cast<int>(_pixel_height));
         if (_texture == nullptr) {
             return false;
@@ -77,10 +78,10 @@ bool Canvas::show() {
     }
     SDL_UnlockTexture(_texture);
 
-    return SDL_SetRenderTarget(&_renderer, nullptr)
-        && SDL_SetRenderDrawColor(&_renderer, 0, 0, 0, 255)
-        && SDL_RenderClear(&_renderer)
-        && SDL_RenderTexture(&_renderer, _texture, nullptr, nullptr)
-        && SDL_RenderPresent(&_renderer);
+    return SDL_SetRenderTarget(_renderer.get(), nullptr)
+        && SDL_SetRenderDrawColor(_renderer.get(), 0, 0, 0, 255)
+        && SDL_RenderClear(_renderer.get())
+        && SDL_RenderTexture(_renderer.get(), _texture, nullptr, nullptr)
+        && SDL_RenderPresent(_renderer.get());
 }
 

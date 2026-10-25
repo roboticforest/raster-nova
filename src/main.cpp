@@ -9,43 +9,34 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <exception>
-#include <optional>
+#include <memory>
 
 import canvas;
 
-/** @brief Displays test canvas pixels until the window closes. Returns nonzero on failure. */
-int main(int num_args, char** args) {
-    (void)num_args; // Ignored.
-    (void)args;     // Ignored.
-
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        SDL_Log("Could not initialize SDL: %s", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Window* window = SDL_CreateWindow("Raster Nova", 800, 600, 0);
-    if (window == nullptr) {
-        SDL_Log("Could not create window: %s", SDL_GetError());
-        SDL_Quit();
-        return 1;
-    }
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
-    if (renderer == nullptr) {
-        SDL_Log("Could not create renderer: %s", SDL_GetError());
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-
-    std::optional<Canvas> canvas;
+/** @brief Creates the display resources and runs the pixel demo. SDL must be initialized. */
+static int run_app() {
+    std::shared_ptr<SDL_Window> window;
+    std::shared_ptr<SDL_Renderer> renderer;
+    std::unique_ptr<Canvas> canvas;
     try {
-        canvas.emplace(*renderer, 200, 150);
+        window = {SDL_CreateWindow("Raster Nova", 800, 600, 0), SDL_DestroyWindow};
+        if (!window) {
+            SDL_Log("Could not create window: %s", SDL_GetError());
+            return 1;
+        }
+
+        // Keep the window alive until the renderer has been destroyed.
+        renderer = {SDL_CreateRenderer(window.get(), nullptr), [window](SDL_Renderer* renderer) {
+            SDL_DestroyRenderer(renderer);
+        }};
+        if (!renderer) {
+            SDL_Log("Could not create renderer: %s", SDL_GetError());
+            return 1;
+        }
+
+        canvas = std::make_unique<Canvas>(renderer, 200, 150);
     } catch (const std::exception& error) {
-        SDL_Log("Could not allocate canvas: %s", error.what());
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
+        SDL_Log("Could not allocate display resources: %s", error.what());
         return 1;
     }
 
@@ -72,9 +63,20 @@ int main(int num_args, char** args) {
         }
     }
 
-    canvas.reset();
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    return exit_code;
+}
+
+/** @brief Displays test canvas pixels until the window closes. Returns nonzero on failure. */
+int main(int num_args, char** args) {
+    (void)num_args; // Ignored.
+    (void)args;     // Ignored.
+
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        SDL_Log("Could not initialize SDL: %s", SDL_GetError());
+        return 1;
+    }
+
+    const int exit_code = run_app();
     SDL_Quit();
     return exit_code;
 }
