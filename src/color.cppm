@@ -19,6 +19,9 @@ public:
     /** @brief Creates transparent black. */
     constexpr Color() noexcept = default;
 
+    /** @brief Creates a color using from_rgba(). @param value Packed 0xRRGGBBAA color. */
+    constexpr explicit Color(std::uint32_t value) noexcept : Color(from_rgba(value)) {}
+
     /**
      * @brief Packs byte channels into an RGBA color.
      * @param red Red channel.
@@ -31,6 +34,26 @@ public:
               | (static_cast<std::uint32_t>(green) << 16)
               | (static_cast<std::uint32_t>(blue) << 8)
               | static_cast<std::uint32_t>(alpha)) {
+    }
+
+    /**
+     * @brief Creates an opaque color from a packed RGB value.
+     * @param value Packed 0xRRGGBB color; only the low 24 bits are used.
+     * @return The RGB color with alpha set to 255.
+     */
+    static constexpr Color from_rgb(std::uint32_t value) noexcept {
+        return from_rgba((value << 8) | 0xFFu);
+    }
+
+    /**
+     * @brief Creates a color from a packed RGBA value.
+     * @param value Packed 0xRRGGBBAA color.
+     * @return The color with all four channels preserved.
+     */
+    static constexpr Color from_rgba(std::uint32_t value) noexcept {
+        Color color;
+        color.rgba(value);
+        return color;
     }
 
     /**
