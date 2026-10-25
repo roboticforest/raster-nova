@@ -2,6 +2,7 @@ module;
 
 #include <cstddef>
 #include <cstdint>
+#include <cmath>
 #include <cstring>
 #include <limits>
 #include <new>
@@ -28,8 +29,25 @@ Canvas::~Canvas() {
 }
 
 void Canvas::set_pixel(int x, int y, Color c) {
-    if (x < 0 || y < 0 || static_cast<unsigned int>(x) >= _pixel_width
-        || static_cast<unsigned int>(y) >= _pixel_height) {
+    if (x < 0 || y < 0) {
+        return;
+    }
+    _set_raw_pixel(static_cast<unsigned int>(x), static_cast<unsigned int>(y), c);
+}
+
+void Canvas::set_pixel(double x, double y, Color c) {
+    if (!(x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0)
+        || _pixel_width == 0 || _pixel_height == 0) {
+        return;
+    }
+
+    const auto pixel_x = static_cast<unsigned int>(std::round(x * (_pixel_width - 1)));
+    const auto pixel_y = static_cast<unsigned int>(std::round(y * (_pixel_height - 1)));
+    _set_raw_pixel(pixel_x, pixel_y, c);
+}
+
+void Canvas::_set_raw_pixel(unsigned int x, unsigned int y, Color c) {
+    if (x >= _pixel_width || y >= _pixel_height) {
         return;
     }
 

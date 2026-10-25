@@ -39,6 +39,15 @@ public:
     void set_pixel(int x, int y, Color c);
 
     /**
+     * @brief Composites a pixel at normalized image coordinates, rounded to the nearest pixel.
+     * @param x Horizontal coordinate in [0, 1], mapping to [0, width - 1].
+     * @param y Vertical coordinate in [0, 1], mapping to [0, height - 1].
+     * @param c Foreground color; the existing pixel is the background.
+     * @note Nonfinite or out-of-range coordinates and empty canvases are ignored.
+     */
+    void set_pixel(double x, double y, Color c);
+
+    /**
      * @brief Uploads the pixels, clears the window to black, draws, and presents the frame.
      * @return True on success, or false on SDL failure; see SDL_GetError().
      * @note Call on the main thread. Zero-sized canvases do nothing and return true.
@@ -46,6 +55,9 @@ public:
     bool show();
 
 private:
+    /** @brief Composites a pixel at raw image coordinates; ignores out-of-bounds coordinates. */
+    void _set_raw_pixel(unsigned int x, unsigned int y, Color c);
+
     std::shared_ptr<SDL_Renderer> _renderer;
     SDL_Texture* _texture = nullptr;
     unsigned int _pixel_width;
