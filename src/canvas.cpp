@@ -29,10 +29,20 @@ Canvas::~Canvas() {
 }
 
 void Canvas::set_pixel(int x, int y, Color c) {
-    if (x < 0 || y < 0) {
+    std::int64_t screen_x = x;
+    std::int64_t screen_y = y;
+    if (_centered_coordinates) {
+        screen_x = static_cast<std::int64_t>(_pixel_width / 2) + x;
+        screen_y = (static_cast<std::int64_t>(_pixel_height) - 1) / 2 - y;
+    }
+    if (screen_x < 0 || screen_y < 0 || screen_x >= _pixel_width || screen_y >= _pixel_height) {
         return;
     }
-    _set_raw_pixel(static_cast<unsigned int>(x), static_cast<unsigned int>(y), c);
+    _set_raw_pixel(static_cast<unsigned int>(screen_x), static_cast<unsigned int>(screen_y), c);
+}
+
+void Canvas::use_centered_coordinates(bool enabled) {
+    _centered_coordinates = enabled;
 }
 
 void Canvas::set_pixel(double x, double y, Color c) {
