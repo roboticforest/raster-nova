@@ -45,6 +45,13 @@ void Canvas::use_centered_coordinates(bool enabled) {
     _centered_coordinates = enabled;
 }
 
+Color Canvas::get_pixel(unsigned int x, unsigned int y) const {
+    if (x >= _pixel_width || y >= _pixel_height) {
+        return {};
+    }
+    return Color::from_rgba(_pixels[static_cast<std::size_t>(y) * _pixel_width + x]);
+}
+
 void Canvas::set_pixel(double x, double y, Color c) {
     const double coordinate_min = _centered_coordinates ? -1.0 : 0.0;
     if (!(x >= coordinate_min && x <= 1.0 && y >= coordinate_min && y <= 1.0)

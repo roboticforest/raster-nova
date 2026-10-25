@@ -51,6 +51,14 @@ public:
     void set_pixel(double x, double y, Color c);
 
     /**
+     * @brief Reads a pixel using top-left, Y-down coordinates, regardless of drawing mode.
+     * @param x Horizontal pixel coordinate.
+     * @param y Vertical pixel coordinate.
+     * @return The stored color, or transparent black if the coordinates are out of bounds.
+     */
+    Color get_pixel(unsigned int x, unsigned int y) const;
+
+    /**
      * @brief Selects centered, Y-up coordinates for both pixel overloads without changing existing pixels.
      * @param enabled True for centered coordinates, false for top-left, Y-down coordinates.
      * @note Each integer axis ranges from -floor(size / 2) through ceil(size / 2) - 1.
