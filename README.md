@@ -12,6 +12,24 @@ cd raster-nova
 `git clone https://github.com/libsdl-org/SDL.git vendor/SDL3`
 ```
 
+## Tests
+
+Build normally, then run the single test executable through CTest:
+
+```sh
+cmake --build build/debug
+ctest --test-dir build/debug --output-on-failure
+```
+
+All automated cases live in `tests/main.cpp`. Add checks there; no CMake changes
+are needed for new cases. Each failed check prints a description, and pixel checks
+also print the coordinates and expected and actual RGBA values. The program returns
+nonzero if any check fails. Checks remain active in both Debug and Release builds.
+
+The tests use a software renderer without opening a window. Keep using the regular
+application for visual checks of window presentation and scaling. Configure with
+`-DBUILD_TESTING=OFF` to omit the test executable.
+
 ## Cross-platform Support
 Tested and run on:
 - Windows 11

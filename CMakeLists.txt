@@ -52,10 +52,9 @@ add_subdirectory(vendor/SDL3 EXCLUDE_FROM_ALL)
 ################################################################################
 # Build Settings
 
-add_executable(${PROJECT_NAME})
-target_sources(${PROJECT_NAME}
+add_library(raster-nova-core STATIC)
+target_sources(raster-nova-core
         PRIVATE
-        src/main.cpp
         src/color.cpp
         src/canvas.cpp
 
@@ -65,6 +64,15 @@ target_sources(${PROJECT_NAME}
         src/color.cppm
         src/canvas.cppm
 )
+
+add_executable(${PROJECT_NAME} src/main.cpp)
+
+include(CTest)
+if (BUILD_TESTING)
+    add_executable(raster-nova-tests tests/main.cpp)
+    target_link_libraries(raster-nova-tests PRIVATE raster-nova-core)
+    add_test(NAME canvas COMMAND raster-nova-tests)
+endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message("● Linux OS - Start of CMake Output ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")
@@ -80,7 +88,8 @@ endif ()
 ################################################################################
 # Linking Settings
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
+target_link_libraries(raster-nova-core PUBLIC SDL3::SDL3)
+target_link_libraries(${PROJECT_NAME} PRIVATE raster-nova-core)
 
 if (WIN32 AND TARGET SDL3::SDL3-shared)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -88,6 +97,13 @@ if (WIN32 AND TARGET SDL3::SDL3-shared)
             $<TARGET_FILE:SDL3::SDL3-shared>
             $<TARGET_FILE_DIR:${PROJECT_NAME}>
     )
+    if (BUILD_TESTING)
+        add_custom_command(TARGET raster-nova-tests POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:SDL3::SDL3-shared>
+                $<TARGET_FILE_DIR:raster-nova-tests>
+        )
+    endif ()
 endif ()
 
 message("╔════════════════════════════════════════════════════════════════════╗")

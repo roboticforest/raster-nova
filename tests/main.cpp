@@ -1,0 +1,101 @@
+#include <SDL3/SDL.h>
+#include <iostream>
+#include <memory>
+
+import canvas;
+
+/** @brief Reports a failed check and returns 1 on failure, or 0 on success. */
+static int check(bool passed, const char* description) {
+    if (passed) {
+        return 0;
+    }
+    std::cerr << "FAIL: " << description << '\n';
+    return 1;
+}
+
+/** @brief Compares a stored pixel with an expected color and returns 1 on failure. */
+static int check_pixel(const Canvas& canvas, unsigned int x, unsigned int y,
+                       Color expected, const char* description) {
+    const Color actual = canvas.get_pixel(x, y);
+    if (actual.rgba() == expected.rgba()) {
+        return 0;
+    }
+    std::cerr << "FAIL: " << description << " at (" << x << ", " << y
+              << "): expected RGBA 0x" << std::hex << expected.rgba()
+              << ", got 0x" << actual.rgba() << std::dec << '\n';
+    return 1;
+}
+
+/** @brief Runs Canvas checks without a window; returns nonzero if any check fails. */
+int main() {
+    // The surface must outlive its software renderer. No video initialization is needed.
+    const std::shared_ptr<SDL_Surface> surface{
+        SDL_CreateSurface(3, 2, SDL_PIXELFORMAT_RGBA8888), SDL_DestroySurface};
+    if (!surface) {
+        std::cerr << "Could not create test surface: " << SDL_GetError() << '\n';
+        return 1;
+    }
+    const std::shared_ptr<SDL_Renderer> renderer{
+        SDL_CreateSoftwareRenderer(surface.get()), [surface](SDL_Renderer* renderer) {
+            SDL_DestroyRenderer(renderer);
+        }};
+    if (!renderer) {
+        std::cerr << "Could not create test renderer: " << SDL_GetError() << '\n';
+        return 1;
+    }
+
+    int num_failures = 0;
+
+    std::cout << "Initial pixels and corner drawing\n";
+    {
+        Canvas canvas{renderer, 3, 2};
+        for (unsigned int y = 0; y < 2; ++y) {
+            for (unsigned int x = 0; x < 3; ++x) {
+                num_failures += check_pixel(canvas, x, y, {}, "New pixels are transparent black");
+            }
+        }
+
+        canvas.set_pixel(0, 0, colors::red());
+        canvas.set_pixel(2, 1, colors::blue());
+        for (unsigned int y = 0; y < 2; ++y) {
+            for (unsigned int x = 0; x < 3; ++x) {
+                Color expected;
+                if (x == 0 && y == 0) {
+                    expected = colors::red();
+                } else if (x == 2 && y == 1) {
+                    expected = colors::blue();
+                }
+                num_failures += check_pixel(canvas, x, y, expected, "Only the two corners change");
+            }
+        }
+        num_failures += check(canvas.show(), "Presenting through the software renderer succeeds");
+    }
+
+    std::cout << "Alpha blending\n";
+    {
+        Canvas canvas{renderer, 3, 2};
+        canvas.set_pixel(1, 0, {0, 0, 255, 127});
+        num_failures += check_pixel(canvas, 1, 0, {0, 0, 255, 127}, "Blue over transparent black");
+        canvas.set_pixel(1, 0, {255, 0, 0, 127});
+        num_failures += check_pixel(canvas, 1, 0, {170, 0, 85, 191}, "Red over translucent blue");
+    }
+
+    std::cout << "Centered and normalized coordinates\n";
+    {
+        Canvas canvas{renderer, 3, 2};
+        canvas.use_centered_coordinates();
+        canvas.set_pixel(0, 0, colors::white());
+        num_failures += check_pixel(canvas, 1, 0, colors::white(), "Centered integer origin");
+        canvas.set_pixel(0.0, 0.0, colors::orange());
+        num_failures += check_pixel(canvas, 1, 0, colors::orange(), "Normalized origin matches integer origin");
+        canvas.set_pixel(-1.0, -1.0, colors::lime());
+        canvas.set_pixel(1.0, 1.0, colors::red());
+        num_failures += check_pixel(canvas, 0, 1, colors::lime(), "Normalized bottom-left endpoint");
+        num_failures += check_pixel(canvas, 2, 0, colors::red(), "Normalized top-right endpoint");
+    }
+
+    // Add new cases here using a fresh Canvas when they need an empty buffer.
+
+    std::cout << num_failures << " failed check(s).\n";
+    return num_failures == 0 ? 0 : 1;
+}
