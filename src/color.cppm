@@ -57,6 +57,36 @@ public:
     }
 
     /**
+     * @brief Composites this foreground color over the supplied background.
+     * @param background Color underneath this color.
+     * @return A new straight RGBA color; neither input is modified.
+     * @note Composites stored RGB channels directly, without color-space conversion.
+     *       Channels and alpha are rounded to the nearest byte value.
+     */
+    constexpr Color over(Color background) const noexcept {
+        if (alpha() == 0) {
+            return background;
+        }
+        if (alpha() == 255 || background.alpha() == 0) {
+            return *this;
+        }
+
+        // Keep the weights scaled by 255 to avoid rounding intermediate alpha values.
+        const std::uint32_t foreground_weight = static_cast<std::uint32_t>(alpha()) * 255u;
+        const std::uint32_t background_weight = static_cast<std::uint32_t>(background.alpha()) * (255u - alpha());
+        const std::uint32_t total_weight = foreground_weight + background_weight;
+        const auto blend_channel = [=](std::uint8_t foreground, std::uint8_t background) {
+            return static_cast<std::uint8_t>((foreground * foreground_weight + background * background_weight
+                                             + total_weight / 2u) / total_weight);
+        };
+
+        return Color{blend_channel(red(), background.red()),
+                     blend_channel(green(), background.green()),
+                     blend_channel(blue(), background.blue()),
+                     static_cast<std::uint8_t>((total_weight + 127u) / 255u)};
+    }
+
+    /**
      * @name Channel getters
      * @brief Return the selected channel in the range 0-255.
      * @{
