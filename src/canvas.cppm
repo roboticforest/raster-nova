@@ -2,23 +2,12 @@ module;
 
 #include <cstdint>
 #include <memory>
+#include <utility>
 #include <SDL3/SDL_render.h>
 
 export module canvas;
 
 export import Color;
-
-/** @brief Raw top-left, Y-down coordinates in the pixel buffer. */
-export struct PixelCoordinates {
-    std::int64_t x;
-    std::int64_t y;
-};
-
-/** @brief Normalized coordinates in the canvas's current coordinate mode. */
-export struct NormalizedCoordinates {
-    double x;
-    double y;
-};
 
 /** @brief Canvas interface for setting individual pixels. */
 export class Canvas {
@@ -79,41 +68,13 @@ public:
     Color get_pixel(double x, double y) const;
 
     /**
-     * @brief Converts integer coordinates in the current mode to raw top-left, Y-down pixels.
-     * @param x Horizontal pixel coordinate in the current mode.
-     * @param y Vertical pixel coordinate in the current mode.
-     * @return Raw coordinates; no bounds checking or clipping is performed.
-     */
-    PixelCoordinates to_raw_pixels(int x, int y) const;
-
-    /**
-     * @brief Converts normalized coordinates to raw pixels, rounding before any centered Y flip.
-     * @param x Normalized horizontal coordinate in the current mode.
-     * @param y Normalized vertical coordinate in the current mode.
-     * @return Raw coordinates; values outside the normalized range are extrapolated, without clipping.
-     * @pre Inputs are finite and the rounded pixel values fit in std::int64_t.
-     * @note Endpoints map to the outermost pixels, matching the floating-point pixel functions.
-     *       Axes with zero or one pixel map to 0; an empty canvas still has no valid pixels.
-     */
-    PixelCoordinates to_raw_pixels(double x, double y) const;
-
-    /**
-     * @brief Converts raw top-left, Y-down pixels to normalized coordinates in the current mode.
-     * @param x Raw horizontal pixel coordinate, regardless of the current mode.
-     * @param y Raw vertical pixel coordinate, regardless of the current mode.
-     * @return Normalized coordinates; no bounds checking or clipping is performed.
-     * @note Axes with zero or one pixel map to 0.0. Otherwise the result maps back to the given pixel,
-     *       subject to floating-point precision. Rounding prevents recovery of the original normalized input.
-     */
-    NormalizedCoordinates to_normalized_coordinates(std::int64_t x, std::int64_t y) const;
-
-    /**
-     * @brief Selects centered, Y-up coordinates for pixel reads, writes, and conversions without changing pixels.
+     * @brief Selects centered, Y-up coordinates for pixel reads and writes without changing pixels.
      * @param enabled True for centered coordinates, false for top-left, Y-down coordinates.
+     * @return The current centered-coordinate setting.
      * @note Each integer axis ranges from -floor(size / 2) through ceil(size / 2) - 1.
      *       Maps x to width / 2 + x and y to (height - 1) / 2 - y using integer division.
      */
-    void use_centered_coordinates(bool enabled = true);
+    bool use_centered_coordinates(bool enabled = true);
 
     /**
      * @brief Uploads the pixels, clears the window to black, draws, and presents the frame.
@@ -123,14 +84,33 @@ public:
     bool show();
 
 private:
-    /** @brief Tests whether raw coordinates identify a pixel in the buffer. */
-    bool _contains_pixel(PixelCoordinates pixel) const;
 
-    /** @brief Tests normalized input bounds and rejects nonfinite coordinates and empty canvases. */
-    bool _contains_normalized_coordinates(double x, double y) const;
+    /**
+     * @brief Converts integer coordinates in the current mode to raw top-left, Y-down pixels.
+     * @param x Horizontal pixel coordinate in the current mode.
+     * @param y Vertical pixel coordinate in the current mode.
+     * @return Raw coordinates; no bounds checking or clipping is performed.
+     */
+    std::pair<std::int64_t, std::int64_t> _convert_coords(int x, int y) const;
+
+    /**
+     * @brief Converts normalized coordinates to raw pixels, rounding before any centered Y flip.
+     * @param x Normalized horizontal coordinate in the current mode.
+     * @param y Normalized vertical coordinate in the current mode.
+     * @return Raw coordinates, or (-1, -1) for invalid normalized input.
+     * @note Endpoints map to the outermost pixels, matching the floating-point pixel functions.
+     *       Axes with zero or one pixel map to 0; an empty canvas still has no valid pixels.
+     */
+    std::pair<std::int64_t, std::int64_t> _convert_coords(double x, double y) const;
+
+    /** @brief Tests whether raw coordinates identify a pixel in the buffer. */
+    bool _contains_pixel(std::pair<std::int64_t, std::int64_t> pixel) const;
+
+    /** @brief Reads a raw pixel, returning transparent black if it is out of bounds. */
+    Color _get_raw_pixel(std::pair<std::int64_t, std::int64_t> pixel) const;
 
     /** @brief Composites a pixel at raw image coordinates; ignores out-of-bounds coordinates. */
-    void _set_raw_pixel(PixelCoordinates pixel, Color c);
+    void _set_raw_pixel(std::pair<std::int64_t, std::int64_t> pixel, Color c);
 
     std::shared_ptr<SDL_Renderer> _renderer;
     SDL_Texture* _texture = nullptr;

@@ -1,8 +1,8 @@
 module;
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
 #include <cstring>
 #include <limits>
 #include <new>
@@ -29,10 +29,10 @@ Canvas::~Canvas() {
 }
 
 void Canvas::set_pixel(int x, int y, Color c) {
-    _set_raw_pixel(to_raw_pixels(x, y), c);
+    _set_raw_pixel(_convert_coords(x, y), c);
 }
 
-PixelCoordinates Canvas::to_raw_pixels(int x, int y) const {
+std::pair<std::int64_t, std::int64_t> Canvas::_convert_coords(int x, int y) const {
     std::int64_t screen_x = x;
     std::int64_t screen_y = y;
     if (_centered_coordinates) {
@@ -42,33 +42,29 @@ PixelCoordinates Canvas::to_raw_pixels(int x, int y) const {
     return {screen_x, screen_y};
 }
 
-void Canvas::use_centered_coordinates(bool enabled) {
+bool Canvas::use_centered_coordinates(bool enabled) {
     _centered_coordinates = enabled;
+    return _centered_coordinates;
 }
 
 Color Canvas::get_pixel(int x, int y) const {
-    const auto pixel = to_raw_pixels(x, y);
-    if (!_contains_pixel(pixel)) {
-        return {};
-    }
-    return Color::from_rgba(_pixels[static_cast<std::size_t>(pixel.y) * _pixel_width + pixel.x]);
+    return _get_raw_pixel(_convert_coords(x, y));
 }
 
 Color Canvas::get_pixel(double x, double y) const {
-    if (!_contains_normalized_coordinates(x, y)) {
-        return {};
-    }
-    const auto pixel = to_raw_pixels(x, y);
-    return Color::from_rgba(_pixels[static_cast<std::size_t>(pixel.y) * _pixel_width + pixel.x]);
+    return _get_raw_pixel(_convert_coords(x, y));
 }
 
 void Canvas::set_pixel(double x, double y, Color c) {
-    if (_contains_normalized_coordinates(x, y)) {
-        _set_raw_pixel(to_raw_pixels(x, y), c);
-    }
+    _set_raw_pixel(_convert_coords(x, y), c);
 }
 
-PixelCoordinates Canvas::to_raw_pixels(double x, double y) const {
+std::pair<std::int64_t, std::int64_t> Canvas::_convert_coords(double x, double y) const {
+    const double coordinate_min = _centered_coordinates ? -1.0 : 0.0;
+    // Reject invalid inputs before rounding; NaN and infinity cannot become pixel indices.
+    if (!(x >= coordinate_min && x <= 1.0 && y >= coordinate_min && y <= 1.0)) {
+        return {-1, -1};
+    }
     if (_centered_coordinates) {
         x = (x + 1.0) / 2.0;
         y = (y + 1.0) / 2.0;
@@ -81,32 +77,26 @@ PixelCoordinates Canvas::to_raw_pixels(double x, double y) const {
     return {pixel_x, pixel_y};
 }
 
-NormalizedCoordinates Canvas::to_normalized_coordinates(std::int64_t x, std::int64_t y) const {
-    double normalized_x = _pixel_width > 1 ? static_cast<double>(x) / (_pixel_width - 1) : 0.0;
-    double normalized_y = _pixel_height > 1 ? static_cast<double>(y) / (_pixel_height - 1) : 0.0;
-    if (_centered_coordinates) {
-        normalized_x = _pixel_width > 1 ? 2.0 * normalized_x - 1.0 : 0.0;
-        normalized_y = _pixel_height > 1 ? 1.0 - 2.0 * normalized_y : 0.0;
+bool Canvas::_contains_pixel(std::pair<std::int64_t, std::int64_t> pixel) const {
+    const auto [x, y] = pixel;
+    return x >= 0 && y >= 0 && x < _pixel_width && y < _pixel_height;
+}
+
+Color Canvas::_get_raw_pixel(std::pair<std::int64_t, std::int64_t> pixel) const {
+    if (!_contains_pixel(pixel)) {
+        return {};
     }
-    return {normalized_x, normalized_y};
+    const auto [x, y] = pixel;
+    return Color::from_rgba(_pixels[static_cast<std::size_t>(y) * _pixel_width + static_cast<std::size_t>(x)]);
 }
 
-bool Canvas::_contains_pixel(PixelCoordinates pixel) const {
-    return pixel.x >= 0 && pixel.y >= 0 && pixel.x < _pixel_width && pixel.y < _pixel_height;
-}
-
-bool Canvas::_contains_normalized_coordinates(double x, double y) const {
-    const double coordinate_min = _centered_coordinates ? -1.0 : 0.0;
-    return x >= coordinate_min && x <= 1.0 && y >= coordinate_min && y <= 1.0
-        && _pixel_width != 0 && _pixel_height != 0;
-}
-
-void Canvas::_set_raw_pixel(PixelCoordinates pixel, Color c) {
+void Canvas::_set_raw_pixel(std::pair<std::int64_t, std::int64_t> pixel, Color c) {
     if (!_contains_pixel(pixel)) {
         return;
     }
 
-    const auto pixel_index = static_cast<std::size_t>(pixel.y) * _pixel_width + static_cast<std::size_t>(pixel.x);
+    const auto [x, y] = pixel;
+    const auto pixel_index = static_cast<std::size_t>(y) * _pixel_width + static_cast<std::size_t>(x);
     _pixels[pixel_index] = c.blend_over(Color::from_rgba(_pixels[pixel_index])).rgba();
 }
 
