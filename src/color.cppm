@@ -20,7 +20,7 @@ public:
     constexpr Color() noexcept = default;
 
     /** @brief Creates a color using from_rgba(). @param value Packed 0xRRGGBBAA color. */
-    constexpr explicit Color(std::uint32_t value) noexcept : Color(from_rgba(value)) {}
+    constexpr explicit Color(const std::uint32_t value) noexcept : Color(from_rgba(value)) {}
 
     /**
      * @brief Packs byte channels into an RGBA color.
@@ -29,7 +29,7 @@ public:
      * @param blue Blue channel.
      * @param alpha Alpha channel; defaults to fully opaque and is stored without blending.
      */
-    constexpr Color(std::uint8_t red, std::uint8_t green, std::uint8_t blue, std::uint8_t alpha = 255) noexcept
+    constexpr Color(const std::uint8_t red, const std::uint8_t green, const std::uint8_t blue, const std::uint8_t alpha = 255) noexcept
         : _rgba((static_cast<std::uint32_t>(red) << 24)
               | (static_cast<std::uint32_t>(green) << 16)
               | (static_cast<std::uint32_t>(blue) << 8)
@@ -41,7 +41,7 @@ public:
      * @param value Packed 0xRRGGBB color; only the low 24 bits are used.
      * @return The RGB color with alpha set to 255.
      */
-    static constexpr Color from_rgb(std::uint32_t value) noexcept {
+    static constexpr Color from_rgb(const std::uint32_t value) noexcept {
         return from_rgba((value << 8) | 0xFFu);
     }
 
@@ -50,7 +50,7 @@ public:
      * @param value Packed 0xRRGGBBAA color.
      * @return The color with all four channels preserved.
      */
-    static constexpr Color from_rgba(std::uint32_t value) noexcept {
+    static constexpr Color from_rgba(const std::uint32_t value) noexcept {
         Color color;
         color.rgba(value);
         return color;
@@ -64,19 +64,15 @@ public:
      *       Channels and alpha are rounded to the nearest byte value.
      */
     constexpr Color blend_over(Color background) const noexcept {
-        if (alpha() == 0) {
-            return background;
-        }
-        if (alpha() == 255 || background.alpha() == 0) {
-            return *this;
-        }
+        if(alpha() == 0) { return background; }
+        if(alpha() == 255 || background.alpha() == 0) { return *this; }
 
         // Keep the weights scaled by 255 to avoid rounding intermediate alpha values.
         const std::uint32_t foreground_weight = static_cast<std::uint32_t>(alpha()) * 255u;
         const std::uint32_t background_weight = static_cast<std::uint32_t>(background.alpha()) * (255u - alpha());
         const std::uint32_t total_weight = foreground_weight + background_weight;
-        const auto blend_channel = [=](std::uint8_t foreground, std::uint8_t background) {
-            return static_cast<std::uint8_t>((foreground * foreground_weight + background * background_weight
+        const auto blend_channel = [=](const std::uint8_t foreground_alpha, const std::uint8_t background_alpha) {
+            return static_cast<std::uint8_t>((foreground_alpha * foreground_weight + background_alpha * background_weight
                                              + total_weight / 2u) / total_weight);
         };
 
@@ -103,17 +99,17 @@ public:
      * @param value New byte channel value.
      * @{
      */
-    constexpr void red(std::uint8_t value) noexcept { _rgba = (_rgba & 0x00FFFFFFu) | (static_cast<std::uint32_t>(value) << 24); }
-    constexpr void green(std::uint8_t value) noexcept { _rgba = (_rgba & 0xFF00FFFFu) | (static_cast<std::uint32_t>(value) << 16); }
-    constexpr void blue(std::uint8_t value) noexcept { _rgba = (_rgba & 0xFFFF00FFu) | (static_cast<std::uint32_t>(value) << 8); }
-    constexpr void alpha(std::uint8_t value) noexcept { _rgba = (_rgba & 0xFFFFFF00u) | static_cast<std::uint32_t>(value); }
+    constexpr void red(const std::uint8_t value) noexcept { _rgba = (_rgba & 0x00FFFFFFu) | (static_cast<std::uint32_t>(value) << 24); }
+    constexpr void green(const std::uint8_t value) noexcept { _rgba = (_rgba & 0xFF00FFFFu) | (static_cast<std::uint32_t>(value) << 16); }
+    constexpr void blue(const std::uint8_t value) noexcept { _rgba = (_rgba & 0xFFFF00FFu) | (static_cast<std::uint32_t>(value) << 8); }
+    constexpr void alpha(const std::uint8_t value) noexcept { _rgba = (_rgba & 0xFFFFFF00u) | static_cast<std::uint32_t>(value); }
     /** @} */
 
     /** @brief Returns the packed 0xRRGGBBAA value. */
     constexpr std::uint32_t rgba() const noexcept { return _rgba; }
 
     /** @brief Replaces all channels with the supplied packed 0xRRGGBBAA value. @param value Packed color. */
-    constexpr void rgba(std::uint32_t value) noexcept { _rgba = value; }
+    constexpr void rgba(const std::uint32_t value) noexcept { _rgba = value; }
 
 private:
     std::uint32_t _rgba = 0;

@@ -6,24 +6,23 @@
 import canvas;
 
 /** @brief Reports a failed check and returns 1 on failure, or 0 on success. */
-static int check(bool passed, const char* description) {
-    if (passed) {
-        return 0;
-    }
-    std::cerr << "FAIL: " << description << '\n';
+static int check(const bool passed, const char* failure_msg) {
+    if(passed) { return 0; }
+    std::cerr << "FAIL: " << failure_msg << '\n';
     return 1;
 }
 
 /** @brief Compares a stored pixel with an expected color and returns 1 on failure. */
-static int check_pixel(const Canvas& canvas, int x, int y,
-                       Color expected, const char* description) {
+static int check_pixel(const Canvas& canvas,
+                       const int x, const int y,
+                       const Color expected, const char* failure_msg) {
     const Color actual = canvas.get_pixel(x, y);
-    if (actual.rgba() == expected.rgba()) {
+    if(actual.rgba() == expected.rgba()) {
         return 0;
     }
-    std::cerr << "FAIL: " << description << " at (" << x << ", " << y
-              << "): expected RGBA 0x" << std::hex << expected.rgba()
-              << ", got 0x" << actual.rgba() << std::dec << '\n';
+    std::cerr << "FAIL: " << failure_msg << " at (" << x << ", " << y
+        << "): expected RGBA 0x" << std::hex << expected.rgba()
+        << ", got 0x" << actual.rgba() << std::dec << '\n';
     return 1;
 }
 
@@ -31,45 +30,49 @@ static int check_pixel(const Canvas& canvas, int x, int y,
 int main() {
     // The surface must outlive its software renderer. No video initialization is needed.
     const std::shared_ptr<SDL_Surface> surface{
-        SDL_CreateSurface(3, 2, SDL_PIXELFORMAT_RGBA8888), SDL_DestroySurface};
-    if (!surface) {
+        SDL_CreateSurface(3, 2, SDL_PIXELFORMAT_RGBA8888),
+        SDL_DestroySurface
+    };
+    if(!surface) {
         std::cerr << "Could not create test surface: " << SDL_GetError() << '\n';
         return 1;
     }
     const std::shared_ptr<SDL_Renderer> renderer{
-        SDL_CreateSoftwareRenderer(surface.get()), [surface](SDL_Renderer* renderer) {
-            SDL_DestroyRenderer(renderer);
-        }};
-    if (!renderer) {
+        SDL_CreateSoftwareRenderer(surface.get()),
+        [surface](SDL_Renderer* renderer_ptr) { SDL_DestroyRenderer(renderer_ptr); }
+    };
+    if(!renderer) {
         std::cerr << "Could not create test renderer: " << SDL_GetError() << '\n';
         return 1;
     }
 
     int num_failures = 0;
 
-    std::cout << "Initial pixels and corner drawing\n";
+    std::cout << "Canvas initialization and basic pixel drawing\n";
     {
         Canvas canvas{renderer, 3, 2};
-        for (unsigned int y = 0; y < 2; ++y) {
-            for (unsigned int x = 0; x < 3; ++x) {
-                num_failures += check_pixel(canvas, x, y, {}, "New pixels are transparent black");
+        for(unsigned int y = 0; y < 2; ++y) {
+            for(unsigned int x = 0; x < 3; ++x) {
+                num_failures += check_pixel(canvas, x, y, {}, "A new canvas should contain only transparent black pixels");
             }
         }
 
         canvas.set_pixel(0, 0, colors::red());
         canvas.set_pixel(2, 1, colors::blue());
-        for (unsigned int y = 0; y < 2; ++y) {
-            for (unsigned int x = 0; x < 3; ++x) {
-                Color expected;
-                if (x == 0 && y == 0) {
+        for(unsigned int y = 0; y < 2; ++y) {
+            for(unsigned int x = 0; x < 3; ++x) {
+                Color expected{};
+                if(x == 0 && y == 0) {
                     expected = colors::red();
-                } else if (x == 2 && y == 1) {
+                }
+                else if(x == 2 && y == 1) {
                     expected = colors::blue();
                 }
-                num_failures += check_pixel(canvas, x, y, expected, "Only the two corners change");
+                num_failures += check_pixel(canvas, x, y, expected,
+                    "set_pixel should write red at (0, 0) and blue at (width - 1, height - 1), leaving other pixels unchanged");
             }
         }
-        num_failures += check(canvas.show(), "Presenting through the software renderer succeeds");
+        num_failures += check(canvas.show(), "Showing the canvas through the software renderer should succeed");
     }
 
     std::cout << "Zero-size canvas\n";
@@ -77,7 +80,7 @@ int main() {
         Canvas canvas{renderer, 0, 0};
         canvas.set_pixel(0, 0, colors::red());
         num_failures += check_pixel(canvas, 0, 0, {}, "Drawing on an empty canvas stores no pixel");
-        num_failures += check(canvas.show(), "Showing an empty canvas succeeds");
+        num_failures += check(canvas.show(), "Showing an empty canvas should succeed");
     }
 
     std::cout << "Out-of-bounds pixels\n";
@@ -88,27 +91,29 @@ int main() {
         canvas.set_pixel(3, 0, colors::red());
         canvas.set_pixel(0, -1, colors::red());
         canvas.set_pixel(0, 2, colors::red());
-        for (unsigned int y = 0; y < 2; ++y) {
-            for (unsigned int x = 0; x < 3; ++x) {
+        for(unsigned int y = 0; y < 2; ++y) {
+            for(unsigned int x = 0; x < 3; ++x) {
                 const Color expected = x == 1 && y == 0 ? colors::lime() : Color{};
-                num_failures += check_pixel(canvas, x, y, expected, "Out-of-bounds drawing changes no pixels");
+                num_failures += check_pixel(canvas, x, y, expected, "Out-of-bounds drawing shouldn't change any pixels");
             }
         }
-        num_failures += check_pixel(canvas, 3, 0, {}, "Reading past the right edge returns transparent black");
-        num_failures += check_pixel(canvas, 0, 2, {}, "Reading past the bottom edge returns transparent black");
+        num_failures += check_pixel(canvas, -1, 0, {}, "Reading past the lift edge should return transparent black");
+        num_failures += check_pixel(canvas, 0, -1, {}, "Reading past the top edge should return transparent black");
+        num_failures += check_pixel(canvas, 3, 0, {}, "Reading past the right edge should return transparent black");
+        num_failures += check_pixel(canvas, 0, 2, {}, "Reading past the bottom edge should return transparent black");
     }
 
     std::cout << "Alpha blending\n";
     {
         Canvas canvas{renderer, 3, 2};
         canvas.set_pixel(1, 0, {0, 0, 255, 127});
-        num_failures += check_pixel(canvas, 1, 0, {0, 0, 255, 127}, "Blue over transparent black");
+        num_failures += check_pixel(canvas, 1, 0, {0, 0, 255, 127}, "50% transparent blue over transparent black");
         canvas.set_pixel(1, 0, {255, 0, 0, 127});
-        num_failures += check_pixel(canvas, 1, 0, {170, 0, 85, 191}, "Red over translucent blue");
+        num_failures += check_pixel(canvas, 1, 0, {170, 0, 85, 191}, "50% transparent red over translucent blue");
         canvas.set_pixel(2, 0, {255, 0, 0, 127});
-        num_failures += check_pixel(canvas, 2, 0, {255, 0, 0, 127}, "Red over transparent black");
+        num_failures += check_pixel(canvas, 2, 0, {255, 0, 0, 127}, "50% transparent red over transparent black");
         canvas.set_pixel(2, 0, {0, 0, 255, 127});
-        num_failures += check_pixel(canvas, 2, 0, {85, 0, 170, 191}, "Blue over translucent red");
+        num_failures += check_pixel(canvas, 2, 0, {85, 0, 170, 191}, "50% transparent blue over translucent red");
     }
 
     std::cout << "Centered and normalized coordinates\n";

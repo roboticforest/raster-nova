@@ -1,6 +1,5 @@
 module;
 
-#include <cstdint>
 #include <memory>
 #include <utility>
 #include <SDL3/SDL_render.h>
@@ -21,7 +20,7 @@ public:
      * @throws std::bad_array_new_length If the buffer size would overflow.
      * @throws std::bad_alloc If memory allocation fails.
      */
-    Canvas(std::shared_ptr<SDL_Renderer> renderer, unsigned int pixel_width, unsigned int pixel_height);
+    Canvas(std::shared_ptr<SDL_Renderer> renderer, std::uint32_t pixel_width, std::uint32_t pixel_height);
 
     /** @brief Releases the pixel buffer and texture before the renderer is destroyed. */
     ~Canvas();
@@ -106,16 +105,17 @@ private:
     /** @brief Tests whether raw coordinates identify a pixel in the buffer. */
     bool _contains_pixel(std::pair<std::int64_t, std::int64_t> pixel) const;
 
-    /** @brief Reads a raw pixel, returning transparent black if it is out of bounds. */
-    Color _get_raw_pixel(std::pair<std::int64_t, std::int64_t> pixel) const;
-
     /** @brief Composites a pixel at raw image coordinates; ignores out-of-bounds coordinates. */
-    void _set_raw_pixel(std::pair<std::int64_t, std::int64_t> pixel, Color c);
+    void _set_raw_pixel(std::pair<std::int64_t, std::int64_t> position, Color c);
 
+    /** @brief Reads a raw pixel, returning transparent black if it is out of bounds. */
+    Color _get_raw_pixel(std::pair<std::int64_t, std::int64_t> position) const;
+
+    // Data
     std::shared_ptr<SDL_Renderer> _renderer;
     SDL_Texture* _texture = nullptr;
-    unsigned int _pixel_width;
-    unsigned int _pixel_height;
+    std::uint32_t _pixel_width;
+    std::uint32_t _pixel_height;
     std::uint32_t* _pixels;
     bool _centered_coordinates = false;
 };
