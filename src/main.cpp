@@ -76,6 +76,50 @@ void bresenham_line(Canvas* canvas, std::int32_t start_x, std::int32_t start_y, 
     }
 }
 
+void _draw_antialias_line_horizontal(Canvas* canvas, double start_x, double start_y, double end_x, double end_y) {
+    Color pixel_color = colors::lime();
+    if(end_x < start_x) {
+        std::swap(start_x, end_x);
+        std::swap(start_y, end_y);
+    }
+    double delta_x = end_x - start_x;
+    double delta_y = end_y - start_y;
+    double slope = delta_x != 0 ? delta_y / delta_x : 1;
+
+    // Draw the start pixel.
+    double endpoint_overlap = 1 - ((start_x + 0.5) - std::floor(start_x + 0.5));
+    double subpixel_offset = start_y - std::floor(start_y);
+    pixel_color.alpha((1 - subpixel_offset) * endpoint_overlap);
+    canvas->set_pixel(int(std::floor(start_x + 0.5)), int(std::floor(start_y)), pixel_color);
+    pixel_color.alpha(subpixel_offset * endpoint_overlap);
+    canvas->set_pixel(int(std::floor(start_x + 0.5)), int(std::floor(start_y) + 1), pixel_color);
+
+    // Draw the end pixel.
+    endpoint_overlap = ((end_x - 0.5) - std::floor(end_x - 0.5));
+    subpixel_offset = end_y - std::floor(end_y);
+    pixel_color.alpha((1 - subpixel_offset) * endpoint_overlap);
+    canvas->set_pixel(int(std::floor(end_x + 0.5)), int(std::floor(end_y)), pixel_color);
+    pixel_color.alpha(subpixel_offset * endpoint_overlap);
+    canvas->set_pixel(int(std::floor(end_x + 0.5)), int(std::floor(start_y) + 1), pixel_color);
+
+    // Draw remaining inbetween pixels.
+    for(auto i = 1; i < std::floor(delta_x); ++i) {
+        double x = start_x + i;
+        double y = start_y + i * slope;
+        std::int32_t ix = std::floor(x);
+        std::int32_t iy = std::floor(y);
+        double dist_from_pixel = y - iy;
+
+        // pixel_color = colors::red();
+        pixel_color.alpha(1 - dist_from_pixel);
+        canvas->set_pixel(ix, iy, pixel_color);
+
+        // pixel_color = colors::orange();
+        pixel_color.alpha(dist_from_pixel);
+        canvas->set_pixel(ix, iy + 1, pixel_color);
+    }
+}
+
 /** @brief Creates the display resources and runs the pixel demo. SDL must be initialized. */
 static int run_app() {
     // Data
