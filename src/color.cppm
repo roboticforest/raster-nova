@@ -11,7 +11,6 @@ module;
 
 #include <concepts>
 #include <cstdint>
-#include <stdexcept>
 
 export module Color;
 
@@ -110,14 +109,14 @@ public:
     /**
      * @name Normalized channel setters
      * @brief Replace one channel, rounding to the nearest byte and preserving the other channels.
-     * @param value Normalized channel in [0.0, 1.0], mapping to [0, 255].
-     * @throws std::out_of_range If value is outside [0.0, 1.0] or is NaN; the color is unchanged.
+     * @param value Normalized channel, clamped to [0.0, 1.0] and mapped to [0, 255].
+     * @note Negative infinity maps to 0, positive infinity to 255, and NaN to 0.
      * @{
      */
-    constexpr void red(const std::floating_point auto value) { red(_normalized_to_byte(value)); }
-    constexpr void green(const std::floating_point auto value) { green(_normalized_to_byte(value)); }
-    constexpr void blue(const std::floating_point auto value) { blue(_normalized_to_byte(value)); }
-    constexpr void alpha(const std::floating_point auto value) { alpha(_normalized_to_byte(value)); }
+    constexpr void red(const std::floating_point auto value) noexcept { red(_normalized_to_byte(value)); }
+    constexpr void green(const std::floating_point auto value) noexcept { green(_normalized_to_byte(value)); }
+    constexpr void blue(const std::floating_point auto value) noexcept { blue(_normalized_to_byte(value)); }
+    constexpr void alpha(const std::floating_point auto value) noexcept { alpha(_normalized_to_byte(value)); }
     /** @} */
 
     /** @brief Returns the packed 0xRRGGBBAA value. */
@@ -127,10 +126,9 @@ public:
     constexpr void rgba(const std::uint32_t value) noexcept { _rgba = value; }
 
 private:
-    static constexpr std::uint8_t _normalized_to_byte(const std::floating_point auto value) {
-        if(!(value >= 0.0 && value <= 1.0)) {
-            throw std::out_of_range("Color channel must be in [0.0, 1.0].");
-        }
+    static constexpr std::uint8_t _normalized_to_byte(const std::floating_point auto value) noexcept {
+        if(!(value > 0.0)) { return 0; }
+        if(value >= 1.0) { return 255; }
         return static_cast<std::uint8_t>(value * 255.0 + 0.5);
     }
 

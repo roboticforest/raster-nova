@@ -2,7 +2,6 @@
 #include <iostream>
 #include <limits>
 #include <memory>
-#include <stdexcept>
 
 import canvas;
 
@@ -60,6 +59,8 @@ int main() {
             return color;
         }();
         static_assert(normalized.rgba() == 0x00FF8040u);
+        static_assert(noexcept(Color{}.red(0.0f)) && noexcept(Color{}.green(0.0f))
+                      && noexcept(Color{}.blue(0.0f)) && noexcept(Color{}.alpha(0.0f)));
 
         const auto check_channel = [&](const auto set_channel, const unsigned int shift) {
             for(const double value : {0.0, 1.0, 0.5, 0.25}) {
@@ -69,19 +70,15 @@ int main() {
                 num_failures += check(color.rgba() == ((0x12345678u & ~(0xFFu << shift)) | (expected << shift)),
                                       "Normalized setters should round only the selected channel");
             }
-            for(const double invalid : {-0.01, 1.01, -std::numeric_limits<double>::denorm_min(),
+            for(const double exposure : {-0.01, 1.01, -std::numeric_limits<double>::denorm_min(),
+                                        -std::numeric_limits<double>::max(), std::numeric_limits<double>::max(),
                                         -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(),
                                         std::numeric_limits<double>::quiet_NaN()}) {
                 Color color{0x12345678u};
-                bool rejected = false;
-                try {
-                    set_channel(color, invalid);
-                }
-                catch(const std::out_of_range&) {
-                    rejected = true;
-                }
-                num_failures += check(rejected && color.rgba() == 0x12345678u,
-                                      "Invalid normalized channels should throw without changing the color");
+                set_channel(color, exposure);
+                const std::uint32_t expected = exposure > 1.0 ? 255u : 0u;
+                num_failures += check(color.rgba() == ((0x12345678u & ~(0xFFu << shift)) | (expected << shift)),
+                                      "Exposure should cap only the selected channel, with NaN mapping to zero");
             }
         };
         check_channel([](Color& color, const double value) { color.red(value); }, 24);
