@@ -42,6 +42,34 @@ void better_draw_line(Canvas* canvas, const std::int32_t start_x, const std::int
     }
 }
 
+// I can't find my old Bresenham line drawing code from 20 years ago, so I based this off of the YouTube video lesson by NoBS Code.
+// Video can be seen here: https://youtu.be/CceepU1vIKo
+void _draw_line_horizontal(Canvas* canvas, std::int32_t start_x, std::int32_t start_y, std::int32_t end_x, std::int32_t end_y) {
+    if(start_x > end_x) {
+        std::swap(start_x, end_x);
+        std::swap(start_y, end_y);
+    }
+
+    std::int32_t delta_x = end_x - start_x;
+    std::int32_t delta_y = end_y - start_y;
+    std::int32_t direction = delta_y >= 0 ? 1 : -1;
+
+    delta_y *= direction;
+
+    if(delta_x != 0) {
+        std::int32_t y = start_y;
+        std::int32_t decider = 2 * delta_y - delta_x;
+        for(auto x = 0; x <= delta_x; ++x) {
+            canvas->set_pixel(start_x + x, y, colors::lime());
+            if(decider >= 0) {
+                y += direction;
+                decider -= 2 * delta_x;
+            }
+            decider += 2 * delta_y;
+        }
+    }
+}
+
 /** @brief Creates the display resources and runs the pixel demo. SDL must be initialized. */
 static int run_app() {
     // Data
