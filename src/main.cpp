@@ -95,6 +95,15 @@ void _draw_line_vertical(Canvas* canvas, std::int32_t start_x, std::int32_t star
     }
 }
 
+void bresenham_line(Canvas* canvas, std::int32_t start_x, std::int32_t start_y, std::int32_t end_x, std::int32_t end_y) {
+    if(std::abs(end_x - start_x) > std::abs(end_y - start_y)) {
+        _draw_line_horizontal(canvas, start_x, start_y, end_x, end_y);
+    }
+    else {
+        _draw_line_vertical(canvas, start_x, start_y, end_x, end_y);
+    }
+}
+
 /** @brief Creates the display resources and runs the pixel demo. SDL must be initialized. */
 static int run_app() {
     // Data
@@ -136,6 +145,23 @@ static int run_app() {
     // Drawing
     canvas->use_centered_coordinates();
     canvas->set_pixel(0, 0, colors::red());
+
+    bresenham_line(canvas.get(), 5,0, 11,0);      // horizontal straight right
+    bresenham_line(canvas.get(), 2, 1, 13, 4);    // shallow upper right
+    bresenham_line(canvas.get(), 5,5, 11,11);     // diagonal upper right
+    bresenham_line(canvas.get(), 1,2, 4,13);      // steep upper right
+    bresenham_line(canvas.get(), 0,5, 0,11);      // vertical up
+    bresenham_line(canvas.get(), -1,2, -4,13);    // steep upper left
+    bresenham_line(canvas.get(), -5,5, -11,11);   // diagonal upper left
+    bresenham_line(canvas.get(), -2,1, -13,4);    // shallow upper left
+    bresenham_line(canvas.get(), -5,0, -11,0);    // horizontal straight left
+    bresenham_line(canvas.get(), -2,-1, -13,-4);  // shallow lower left
+    bresenham_line(canvas.get(), -5,-5, -11,-11); // diagonal lower left
+    bresenham_line(canvas.get(), -1,-2, -4,-13);  // steep lower left
+    bresenham_line(canvas.get(), 0,-5, 0,-11);    // vertical down
+    bresenham_line(canvas.get(), 1,-2, 4,-13);    // steep lower right
+    bresenham_line(canvas.get(), 5,-5, 11,-11);   // diagonal lower right
+    bresenham_line(canvas.get(), 2, -1, 13, -4);  // shallow lower right
 
     // Core App Loop
     int exit_code = 0;
