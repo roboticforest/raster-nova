@@ -2,6 +2,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <stdexcept>
 
 import canvas;
 
@@ -47,6 +48,54 @@ int main() {
     }
 
     int num_failures = 0;
+
+    std::cout << "Normalized color channels\n";
+    {
+        constexpr Color normalized = [] {
+            Color color;
+            color.red(0.0f);
+            color.green(1.0f);
+            color.blue(0.5f);
+            color.alpha(0.25);
+            return color;
+        }();
+        static_assert(normalized.rgba() == 0x00FF8040u);
+
+        const auto check_channel = [&](const auto set_channel, const unsigned int shift) {
+            for(const double value : {0.0, 1.0, 0.5, 0.25}) {
+                Color color{0x12345678u};
+                set_channel(color, value);
+                const auto expected = static_cast<std::uint32_t>(value * 255.0 + 0.5);
+                num_failures += check(color.rgba() == ((0x12345678u & ~(0xFFu << shift)) | (expected << shift)),
+                                      "Normalized setters should round only the selected channel");
+            }
+            for(const double invalid : {-0.01, 1.01, -std::numeric_limits<double>::denorm_min(),
+                                        -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(),
+                                        std::numeric_limits<double>::quiet_NaN()}) {
+                Color color{0x12345678u};
+                bool rejected = false;
+                try {
+                    set_channel(color, invalid);
+                }
+                catch(const std::out_of_range&) {
+                    rejected = true;
+                }
+                num_failures += check(rejected && color.rgba() == 0x12345678u,
+                                      "Invalid normalized channels should throw without changing the color");
+            }
+        };
+        check_channel([](Color& color, const double value) { color.red(value); }, 24);
+        check_channel([](Color& color, const double value) { color.green(value); }, 16);
+        check_channel([](Color& color, const double value) { color.blue(value); }, 8);
+        check_channel([](Color& color, const double value) { color.alpha(value); }, 0);
+
+        Color color;
+        color.red(255);
+        color.green(128);
+        color.blue(static_cast<std::uint8_t>(64));
+        color.alpha(32);
+        num_failures += check(color.rgba() == 0xFF804020u, "Integer channel setters should retain byte semantics");
+    }
 
     std::cout << "Canvas initialization and basic pixel drawing\n";
     {
