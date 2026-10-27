@@ -14,34 +14,6 @@
 
 import canvas;
 
-// Can only draw low-angle lines in one positive octant, from horizontal to diagonal.
-void naive_draw_line(Canvas* canvas, const std::uint32_t start_x, const std::uint32_t start_y, const std::uint32_t end_x, const std::uint32_t end_y) {
-    double delta_x = end_x - start_x;
-    double delta_y = end_y - start_y;
-    double slope = 0;
-    if(delta_x != 0) { // Ensure line isn't vertical.
-        slope = double(delta_y / delta_x);
-        for(std::uint32_t i = 0; i <= delta_x; ++i) {
-            canvas->set_pixel(int(start_x + i), int(std::round(start_y + i * slope)), colors::red());
-        }
-    }
-}
-
-// Can draw all lines in positive octants, from horizontal to vertical.
-void better_draw_line(Canvas* canvas, const std::int32_t start_x, const std::int32_t start_y, const std::int32_t end_x, const std::int32_t end_y) {
-    double delta_x = end_x - start_x;
-    double delta_y = end_y - start_y;
-    double step = std::max(std::abs(delta_x), std::abs(delta_y));
-    double step_x, step_y = 0;
-    if(step != 0) {
-        step_x = delta_x / step;
-        step_y = delta_y / step;
-        for(std::uint32_t i = 0; i <= step; ++i) {
-            canvas->set_pixel(int(std::round(start_x + i * step_x)), int(std::round(start_y + i * step_y)), colors::white());
-        }
-    }
-}
-
 // I can't find my old Bresenham line drawing code from 20 years ago, so I based this off of the YouTube video lesson by NoBS Code.
 // Video can be seen here: https://youtu.be/CceepU1vIKo
 void _draw_line_horizontal(Canvas* canvas, std::int32_t start_x, std::int32_t start_y, std::int32_t end_x, std::int32_t end_y) {
