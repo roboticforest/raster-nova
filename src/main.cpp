@@ -14,6 +14,18 @@
 
 import canvas;
 
+void draw_checker(Canvas* canvas) {
+    Color grid_color = colors::white();
+    grid_color.alpha(64);
+    for(int x = 0; x < canvas->get_width(); ++x) {
+        for(int y = 0; y < canvas->get_height(); ++y) {
+            if((x + y) % 2 == 0) {
+                canvas->set_pixel(x, y, grid_color);
+            }
+        }
+    }
+}
+
 // I can't find my old Bresenham line drawing code from 20 years ago, so I based this off of the YouTube video lesson by NoBS Code.
 // Video can be seen here: https://youtu.be/CceepU1vIKo
 void _draw_line_horizontal(Canvas* canvas, std::int32_t start_x, std::int32_t start_y, std::int32_t end_x, std::int32_t end_y) {
@@ -211,6 +223,7 @@ static int run_app() {
     }
 
     // Drawing
+    // draw_checker(canvas.get());
     canvas->use_centered_coordinates();
     canvas->set_pixel(0, 0, colors::red());
 
