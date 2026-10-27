@@ -163,6 +163,15 @@ void _draw_antialias_line_vertical(Canvas* canvas, double start_x, double start_
     }
 }
 
+void xiaolin_wu_line(Canvas* canvas, const double start_x, const double start_y, const double end_x, const double end_y) {
+    if(std::abs(end_y - start_y) < std::abs(end_x - start_x)) {
+        _draw_antialias_line_horizontal(canvas, start_x, start_y, end_x, end_y);
+    } else {
+        _draw_antialias_line_vertical(canvas, start_x, start_y, end_x, end_y);
+    }
+}
+
+
 /** @brief Creates the display resources and runs the pixel demo. SDL must be initialized. */
 static int run_app() {
     // Data
@@ -205,22 +214,39 @@ static int run_app() {
     canvas->use_centered_coordinates();
     canvas->set_pixel(0, 0, colors::red());
 
-    bresenham_line(canvas.get(), 5,0, 11,0);      // horizontal straight right
-    bresenham_line(canvas.get(), 2, 1, 13, 4);    // shallow upper right
-    bresenham_line(canvas.get(), 5,5, 11,11);     // diagonal upper right
-    bresenham_line(canvas.get(), 1,2, 4,13);      // steep upper right
-    bresenham_line(canvas.get(), 0,5, 0,11);      // vertical up
-    bresenham_line(canvas.get(), -1,2, -4,13);    // steep upper left
-    bresenham_line(canvas.get(), -5,5, -11,11);   // diagonal upper left
-    bresenham_line(canvas.get(), -2,1, -13,4);    // shallow upper left
-    bresenham_line(canvas.get(), -5,0, -11,0);    // horizontal straight left
-    bresenham_line(canvas.get(), -2,-1, -13,-4);  // shallow lower left
-    bresenham_line(canvas.get(), -5,-5, -11,-11); // diagonal lower left
-    bresenham_line(canvas.get(), -1,-2, -4,-13);  // steep lower left
-    bresenham_line(canvas.get(), 0,-5, 0,-11);    // vertical down
-    bresenham_line(canvas.get(), 1,-2, 4,-13);    // steep lower right
-    bresenham_line(canvas.get(), 5,-5, 11,-11);   // diagonal lower right
-    bresenham_line(canvas.get(), 2, -1, 13, -4);  // shallow lower right
+    //bresenham_line(canvas.get(), 5,0, 11,0);      // horizontal straight right
+    //bresenham_line(canvas.get(), 2, 1, 13, 4);    // shallow upper right
+    //bresenham_line(canvas.get(), 5,5, 11,11);     // diagonal upper right
+    //bresenham_line(canvas.get(), 1,2, 4,13);      // steep upper right
+    //bresenham_line(canvas.get(), 0,5, 0,11);      // vertical up
+    //bresenham_line(canvas.get(), -1,2, -4,13);    // steep upper left
+    //bresenham_line(canvas.get(), -5,5, -11,11);   // diagonal upper left
+    //bresenham_line(canvas.get(), -2,1, -13,4);    // shallow upper left
+    //bresenham_line(canvas.get(), -5,0, -11,0);    // horizontal straight left
+    //bresenham_line(canvas.get(), -2,-1, -13,-4);  // shallow lower left
+    //bresenham_line(canvas.get(), -5,-5, -11,-11); // diagonal lower left
+    //bresenham_line(canvas.get(), -1,-2, -4,-13);  // steep lower left
+    //bresenham_line(canvas.get(), 0,-5, 0,-11);    // vertical down
+    //bresenham_line(canvas.get(), 1,-2, 4,-13);    // steep lower right
+    //bresenham_line(canvas.get(), 5,-5, 11,-11);   // diagonal lower right
+    //bresenham_line(canvas.get(), 2, -1, 13, -4);  // shallow lower right
+
+    xiaolin_wu_line(canvas.get(), 5,0, 11,0);      // horizontal straight right
+    xiaolin_wu_line(canvas.get(), 2, 1, 13, 4);    // shallow upper right
+    xiaolin_wu_line(canvas.get(), 5,5, 11,11);     // diagonal upper right
+    xiaolin_wu_line(canvas.get(), 1,2, 4,13);      // steep upper right
+    xiaolin_wu_line(canvas.get(), 0,5, 0,11);      // vertical up
+    xiaolin_wu_line(canvas.get(), -1,2, -4,13);    // steep upper left
+    xiaolin_wu_line(canvas.get(), -5,5, -11,11);   // diagonal upper left
+    xiaolin_wu_line(canvas.get(), -2,1, -13,4);    // shallow upper left
+    xiaolin_wu_line(canvas.get(), -5,0, -11,0);    // horizontal straight left
+    xiaolin_wu_line(canvas.get(), -2,-1, -13,-4);  // shallow lower left
+    xiaolin_wu_line(canvas.get(), -5,-5, -11,-11); // diagonal lower left
+    xiaolin_wu_line(canvas.get(), -1,-2, -4,-13);  // steep lower left
+    xiaolin_wu_line(canvas.get(), 0,-5, 0,-11);    // vertical down
+    xiaolin_wu_line(canvas.get(), 1,-2, 4,-13);    // steep lower right
+    xiaolin_wu_line(canvas.get(), 5,-5, 11,-11);   // diagonal lower right
+    xiaolin_wu_line(canvas.get(), 2, -1, 13, -4);  // shallow lower right
 
     // Core App Loop
     int exit_code = 0;
