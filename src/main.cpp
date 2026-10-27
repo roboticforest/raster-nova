@@ -70,6 +70,31 @@ void _draw_line_horizontal(Canvas* canvas, std::int32_t start_x, std::int32_t st
     }
 }
 
+void _draw_line_vertical(Canvas* canvas, std::int32_t start_x, std::int32_t start_y, std::int32_t end_x, std::int32_t end_y) {
+    if(start_y > end_y) {
+        std::swap(start_x, end_x);
+        std::swap(start_y, end_y);
+    }
+
+    std::int32_t delta_x = end_x - start_x;
+    std::int32_t delta_y = end_y - start_y;
+    std::int32_t direction = delta_x >= 0 ? 1 : -1;
+
+    delta_x *= direction;
+    if(delta_y != 0) {
+        std::int32_t x = start_x;
+        std::int32_t decider = 2 * delta_x - delta_y;
+        for(auto y = 0; y <= delta_y; ++y) {
+            canvas->set_pixel(x, start_y + y, colors::light_blue());
+            if(decider >= 0) {
+                x += direction;
+                decider -= 2 * delta_y;
+            }
+            decider += 2 * delta_x;
+        }
+    }
+}
+
 /** @brief Creates the display resources and runs the pixel demo. SDL must be initialized. */
 static int run_app() {
     // Data
