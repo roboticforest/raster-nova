@@ -31,6 +31,15 @@ public:
     Canvas& operator=(const Canvas&) = delete;
 
     /**
+     * @brief Selects centered, Y-up coordinates for pixel reads and writes without changing pixels.
+     * @param enabled True for centered coordinates, false for top-left, Y-down coordinates.
+     * @return The current centered-coordinate setting.
+     * @note Each integer axis ranges from -floor(size / 2) through ceil(size / 2) - 1.
+     *       Maps x to width / 2 + x and y to (height - 1) / 2 - y using integer division.
+     */
+    bool use_centered_coordinates(bool enabled = true);
+
+    /**
      * @brief Composites a color over a pixel; ignores out-of-bounds coordinates.
      * @param x Horizontal pixel coordinate.
      * @param y Vertical pixel coordinate.
@@ -67,13 +76,16 @@ public:
     Color get_pixel(double x, double y) const;
 
     /**
-     * @brief Selects centered, Y-up coordinates for pixel reads and writes without changing pixels.
-     * @param enabled True for centered coordinates, false for top-left, Y-down coordinates.
-     * @return The current centered-coordinate setting.
-     * @note Each integer axis ranges from -floor(size / 2) through ceil(size / 2) - 1.
-     *       Maps x to width / 2 + x and y to (height - 1) / 2 - y using integer division.
+     * @brief Gets the canvas width.
+     * @return The width in pixels.
      */
-    bool use_centered_coordinates(bool enabled = true);
+    std::uint32_t get_width() const;
+
+    /**
+     * @brief Gets the canvas height.
+     * @return The height in pixels.
+     */
+    std::uint32_t get_height() const;
 
     /**
      * @brief Uploads the pixels, clears the window to black, draws, and presents the frame.

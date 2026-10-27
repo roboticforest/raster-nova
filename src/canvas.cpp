@@ -39,6 +39,13 @@ void Canvas::set_pixel(const double x, const double y, const Color c) { _set_raw
 Color Canvas::get_pixel(const int x,    const int y)    const { return _get_raw_pixel(_convert_coords(x, y)); }
 Color Canvas::get_pixel(const double x, const double y) const { return _get_raw_pixel(_convert_coords(x, y)); }
 
+std::uint32_t Canvas::get_width() const { return _pixel_width; }
+std::uint32_t Canvas::get_height() const { return _pixel_height; }
+
+//////////////////////////////////////////////////////////////////////
+/// Private Helper Functions
+//////////////////////////////////////////////////////////////////////
+
 std::pair<std::int64_t, std::int64_t> Canvas::_convert_coords(int x, int y) const {
     std::int64_t screen_x = x;
     std::int64_t screen_y = y;
