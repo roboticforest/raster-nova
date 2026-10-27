@@ -120,6 +120,49 @@ void _draw_antialias_line_horizontal(Canvas* canvas, double start_x, double star
     }
 }
 
+void _draw_antialias_line_vertical(Canvas* canvas, double start_x, double start_y, double end_x, double end_y) {
+    Color pixel_color = colors::lime();
+    if(end_y < start_y) {
+        std::swap(start_x, end_x);
+        std::swap(start_y, end_y);
+    }
+    double delta_x = end_x - start_x;
+    double delta_y = end_y - start_y;
+    double slope = delta_y != 0 ? delta_x / delta_y : 1;
+
+    // Draw the start pixel.
+    double endpoint_overlap = 1 - ((start_y + 0.5) - std::floor(start_y + 0.5));
+    double subpixel_offset = start_y - std::floor(start_y);
+    pixel_color.alpha((1 - subpixel_offset) * endpoint_overlap);
+    canvas->set_pixel(int(std::floor(start_x + 0.5)), int(std::floor(start_y)), pixel_color);
+    pixel_color.alpha(subpixel_offset * endpoint_overlap);
+    canvas->set_pixel(int(std::floor(start_x + 0.5)), int(std::floor(start_y) + 1), pixel_color);
+
+    // Draw the end pixel.
+    endpoint_overlap = ((end_y - 0.5) - std::floor(end_y - 0.5));
+    subpixel_offset = end_y - std::floor(end_y);
+    pixel_color.alpha((1 - subpixel_offset) * endpoint_overlap);
+    canvas->set_pixel(int(std::floor(end_x + 0.5)), int(std::floor(end_y)), pixel_color);
+    pixel_color.alpha(subpixel_offset * endpoint_overlap);
+    canvas->set_pixel(int(std::floor(end_x + 0.5)), int(std::floor(start_y) + 1), pixel_color);
+
+    for(auto i = 1; i < int(delta_y); ++i) {
+        double x = start_x + i * slope;
+        double y = start_y + i;
+        std::int32_t ix = std::floor(x);
+        std::int32_t iy = std::floor(y);
+        double dist_from_pixel = x - ix;
+
+        // pixel_color = colors::yellow();
+        pixel_color.alpha(1 - dist_from_pixel);
+        canvas->set_pixel(ix, iy, pixel_color);
+
+        // pixel_color = colors::cyan();
+        pixel_color.alpha(dist_from_pixel);
+        canvas->set_pixel(ix + 1, iy, pixel_color);
+    }
+}
+
 /** @brief Creates the display resources and runs the pixel demo. SDL must be initialized. */
 static int run_app() {
     // Data
