@@ -37,20 +37,16 @@ application for visual checks of window presentation and scaling. Configure with
 ## Cross-platform Support
 Tested and run on:
 - Windows 11
-- Linux Mint 20.3 Cinnamon
+- Linux Mint 22.3 Cinnamon
 
 ## Dependencies
 ### Simple DirectMedia Layer 3 (SDL3)
 If you are having any troubles with the above `git clone` command, detailed installation instructions for SDL3 are on [GitHub](https://github.com/libsdl-org/SDL/blob/main/INSTALL.md), and full documentation for SDL3 is on their [official wiki site](https://wiki.libsdl.org/SDL3/FrontPage).
 
 ### Development Tools
-This project was developed for both Windows 11 and Linux Mint 20.3 using CLion. You can use any IDE you like (or none at all) as long as your build tools support C++20 modules and your editor handles the new syntax correctly. If you do use CLion, you may need to manually update or replace its bundled toolchain like I did.
+This project is developed on Windows 11 and Linux Mint using CLion. You can use any IDE you like (or none at all) as long as your build tools support C++20 modules and your editor handles the syntax correctly. CMake 4.0 or newer is required.
 
-Everything was built and tested with the following software versions (or newer).
-
-#### Common Between OSes
-- CLion 2023.2 (runtime 17.0) IDE.
-- CMake 3.31 Build System.
+The following development setups have been built and tested.
 
 #### Windows
 
@@ -64,8 +60,24 @@ Current Windows 11 development setup:
 - Ninja 1.13.2 build tool, bundled with CLion; CMake generator: `Ninja`.
 
 #### Linux
-- Clang 18.1 Compiler.
-- Ninja 1.11 Build Generator.
+
+Current Linux Mint 22.3 Cinnamon development setup:
+
+- CLion 2026.2.4 IDE.
+- Clang 20.1.2 compiler, installed through apt (`clang-20` and `clang++-20`).
+- CMake 4.3.1 build system, bundled with CLion.
+- Ninja 1.13.2 build tool, bundled with CLion; CMake generator: `Ninja`.
+
+Preparation on Linux consisted of:
+
+1. Installing the Ubuntu/Debian development packages listed in SDL3's [Linux build dependencies](https://github.com/libsdl-org/SDL/blob/main/docs/README-linux.md#build-dependencies).
+2. Installing Clang 20 through apt:
+
+   ```sh
+   sudo apt install clang-20
+   ```
+
+In CLion, select `/bin/clang-20` as the C compiler, `/bin/clang++-20` as the C++ compiler, and use CLion's bundled CMake and Ninja.
 
 ## License
 This software is provided under the Mozilla Public License Version 2.0 (MPL 2.0). See [LICENSE.txt](LICENSE.txt), or visit the [Mozilla Public License](https://mozilla.org/MPL/2.0/) website for full details. The following summary is ***not*** a substitute for the full license.
