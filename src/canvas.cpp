@@ -3,6 +3,7 @@ module;
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <memory>
 #include <new>
 #include <utility>
 #include <SDL3/SDL.h>
