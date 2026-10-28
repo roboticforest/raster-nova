@@ -53,8 +53,15 @@ Everything was built and tested with the following software versions (or newer).
 - CMake 3.31 Build System.
 
 #### Windows
-- MSVC 19.44 (Visual Studio 17 2022) Compiler
-- MSVC 19.44 (Visual Studio 17 2022) Build Generator
+
+Current Windows 11 development setup:
+
+- CLion 2026.2.4 IDE.
+- Visual Studio Community 2026 (18.11.1), using CLion's Visual Studio toolchain.
+- MSVC 19.51.36260 compiler targeting x64 (toolset 14.51.36231).
+- Windows SDK 10.0.28000.0.
+- CMake 4.3.1 build system (installed separately).
+- Ninja 1.13.2 build tool, bundled with CLion; CMake generator: `Ninja`.
 
 #### Linux
 - Clang 18.1 Compiler.
