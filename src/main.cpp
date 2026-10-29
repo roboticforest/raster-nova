@@ -183,34 +183,86 @@ void xiaolin_wu_line(Canvas* canvas, const double start_x, const double start_y,
     }
 }
 
-void draw_circle(Canvas* canvas, std::int32_t center_x, std::int32_t center_y, std::int32_t radius) {
-    Color quadrant_1 = colors::red();
-    Color quadrant_2 = colors::green();
-    Color quadrant_3 = colors::blue();
-    Color quadrant_4 = colors::cyan();
-    Color quadrant_5 = colors::yellow();
-    Color quadrant_6 = colors::magenta();
-    Color quadrant_7 = colors::white();
-    Color quadrant_8 = colors::orange();
+/**
+ * @brief TEMPORARY: Draws a translucent reference circle by comparing radial distances.
+ * @note Visual test code for draw_circle(); its long-term API and retention are undecided.
+ * @param canvas Destination canvas; must not be null.
+ * @param center_x Horizontal center in the canvas coordinate mode.
+ * @param center_y Vertical center in the canvas coordinate mode.
+ * @param radius Positive radius in pixels; zero and negative radii are not handled separately.
+ */
+void draw_perfect_circle(Canvas* canvas, int center_x, int center_y, int radius) {
+    Color color{80,224,152,52};
+    int x = 0;
+    int y = radius;
+    canvas->set_pixel(center_x, center_y + radius, color);
+    canvas->set_pixel(center_x, center_y - radius, color);
+    canvas->set_pixel(center_x + radius, center_y, color);
+    canvas->set_pixel(center_x - radius, center_y, color);
 
-    quadrant_1.alpha(0.25);
-    quadrant_2.alpha(0.25);
-    quadrant_3.alpha(0.25);
-    quadrant_4.alpha(0.25);
-    quadrant_5.alpha(0.25);
-    quadrant_6.alpha(0.25);
-    quadrant_7.alpha(0.25);
-    quadrant_8.alpha(0.25);
+    while (true) {
+        x += 1;
+        if(std::abs(std::hypot(static_cast<double>(x), static_cast<double>(y) - 1) - radius)
+           < std::abs(std::hypot(static_cast<double>(x), static_cast<double>(y)) - radius)) {
+            --y;
+        }
+        if (x < y) {
+            canvas->set_pixel(center_x + x, center_y + y, color);
+            canvas->set_pixel(center_x - x, center_y + y, color);
+            canvas->set_pixel(center_x + x, center_y - y, color);
+            canvas->set_pixel(center_x - x, center_y - y, color);
+            canvas->set_pixel(center_x + y, center_y + x, color);
+            canvas->set_pixel(center_x - y, center_y + x, color);
+            canvas->set_pixel(center_x + y, center_y - x, color);
+            canvas->set_pixel(center_x - y, center_y - x, color);
+        }
+        else
+            {break;}
+    }
+    if (x == y) {
+        canvas->set_pixel(center_x + x, center_y + y, color);
+        canvas->set_pixel(center_x - x, center_y + y, color);
+        canvas->set_pixel(center_x + x, center_y - y, color);
+        canvas->set_pixel(center_x - x, center_y - y, color);
+    }
+}
+
+void draw_circle(Canvas* canvas, std::int32_t center_x, std::int32_t center_y, std::int32_t radius) {
+    if(radius < 1) { canvas->set_pixel(center_x, center_y, colors::red()); }
+
+    Color quadrant_1 = {240, 80, 160, 52}; //colors::red();
+    Color quadrant_2 = {240, 80, 160, 52}; //colors::green();
+    Color quadrant_3 = {240, 80, 160, 52}; //colors::blue();
+    Color quadrant_4 = {240, 80, 160, 52}; //colors::cyan();
+    Color quadrant_5 = {240, 80, 160, 52}; //colors::yellow();
+    Color quadrant_6 = {240, 80, 160, 52}; //colors::magenta();
+    Color quadrant_7 = {240, 80, 160, 52}; //colors::white();
+    Color quadrant_8 = {240, 80, 160, 52}; //colors::orange();
+
+    //quadrant_1.alpha(0.10);
+    //quadrant_2.alpha(0.10);
+    //quadrant_3.alpha(0.10);
+    //quadrant_4.alpha(0.10);
+    //quadrant_5.alpha(0.10);
+    //quadrant_6.alpha(0.10);
+    //quadrant_7.alpha(0.10);
+    //quadrant_8.alpha(0.10);
 
     // BUG: Initial pixel draw causes overdraw.
     // BUG: When there's a diagonal pixel, overdraw occurs.
     std::int32_t x = 0;
     std::int32_t y = -radius;
-    std::int32_t decider = -radius;
+    std::int32_t decider = 1 - radius;
 
+    // Plot compass directions to prevent overdraw.
+    canvas->set_pixel(center_x + x, center_y + y, quadrant_1);
+    canvas->set_pixel(center_x - x, center_y - y, quadrant_4);
+    canvas->set_pixel(center_x + y, center_y - x, quadrant_6);
+    canvas->set_pixel(center_x - y, center_y + x, quadrant_7);
 
     while(x < -y) {
-        if(decider > 0) {
+        x += 1;
+        if(decider >= 0) {
             y += 1;
             decider += 2 * (x + y) + 1;
         }
@@ -218,26 +270,42 @@ void draw_circle(Canvas* canvas, std::int32_t center_x, std::int32_t center_y, s
             decider += 2 * x + 1;
         }
 
-        canvas->set_pixel(center_x + x, center_y + y, quadrant_1); canvas->show(); // Bottom (moving right) [lower-right diagonal]
-        canvas->set_pixel(center_x + x, center_y - y, quadrant_2); canvas->show(); // Top (moving right) [upper-right diagonal]
-        canvas->set_pixel(center_x - x, center_y + y, quadrant_3); canvas->show(); // Bottom, again (moving left) [lower-left diagonal]
-        canvas->set_pixel(center_x - x, center_y - y, quadrant_4); canvas->show(); // Top, again (moving left) [upper-left diagonal]
-        canvas->set_pixel(center_x + y, center_y + x, quadrant_5); canvas->show(); // Left (moving up) [UL again, diagonal]
-        canvas->set_pixel(center_x + y, center_y - x, quadrant_6); canvas->show(); // Left, again (moving down) [LL again, diagonal]
-        canvas->set_pixel(center_x - y, center_y + x, quadrant_7); canvas->show(); // Right (moving up) [UR again, diagonal]
-        canvas->set_pixel(center_x - y, center_y - x, quadrant_8); canvas->show(); // Right, again (moving down) [LR again, diagonal]
-        x += 1;
+        if(x < -y) {
+            canvas->set_pixel(center_x + x, center_y + y, quadrant_1); // canvas->show(); // Bottom (moving right) [lower-right diagonal]
+            canvas->set_pixel(center_x + x, center_y - y, quadrant_2); // canvas->show(); // Top (moving right) [upper-right diagonal]
+            canvas->set_pixel(center_x - x, center_y + y, quadrant_3); // canvas->show(); // Bottom, again (moving left) [lower-left diagonal]
+            canvas->set_pixel(center_x - x, center_y - y, quadrant_4); // canvas->show(); // Top, again (moving left) [upper-left diagonal]
+            canvas->set_pixel(center_x + y, center_y + x, quadrant_5); // canvas->show(); // Left (moving up) [UL again, diagonal]
+            canvas->set_pixel(center_x + y, center_y - x, quadrant_6); // canvas->show(); // Left, again (moving down) [LL again, diagonal]
+            canvas->set_pixel(center_x - y, center_y + x, quadrant_7); // canvas->show(); // Right (moving up) [UR again, diagonal]
+            canvas->set_pixel(center_x - y, center_y - x, quadrant_8); // canvas->show(); // Right, again (moving down) [LR again, diagonal]
+        }
+        else
+        {
+            break;
+        }
     }
+    if (x == -y){
+        canvas->set_pixel(center_x + x, center_y + y, quadrant_1);
+        canvas->set_pixel(center_x + x, center_y - y, quadrant_2);
+        canvas->set_pixel(center_x - x, center_y + y, quadrant_3);
+        canvas->set_pixel(center_x - x, center_y - y, quadrant_4);
+    }
+
 }
 
 
-/** @brief Creates the display resources and runs the pixel demo. SDL must be initialized. */
+/**
+ * @brief Creates display resources and runs the temporary circle comparison harness.
+ * @note SDL must be initialized. The demo drawing, colors, sizing, and keyboard controls
+ *       are temporary visual test code for the circle algorithms, not application APIs.
+ */
 static int run_app() {
     // Data
     int window_width = 1600;
     int window_height = 900;
-    unsigned int canvas_width = 16 * 4;
-    unsigned int canvas_height = 9 * 4;
+    unsigned int canvas_width = 16 * 8;
+    unsigned int canvas_height = 9 * 8;
 
     std::shared_ptr<SDL_Window> window;
     std::shared_ptr<SDL_Renderer> renderer;
@@ -311,10 +379,25 @@ static int run_app() {
     // TEMPORARY: Keyboard-controlled radius for experimenting with circle drawing.
     std::int32_t radius = 10;
     bool redraw_circle = true;
+    constexpr Uint64 RADIUS_UPDATE_INTERVAL_MS = 50;
+    bool up_pressed = false;
+    bool down_pressed = false;
+    Uint64 next_radius_update_ms = 0;
 
     // Core App Loop
     int exit_code = 0;
     while(true) {
+        // TEMPORARY: Repeat held arrows at 20 updates per second.
+        const int radius_direction = int(up_pressed) - int(down_pressed);
+        const Uint64 current_time_ms = SDL_GetTicks();
+        if(radius_direction != 0 && current_time_ms >= next_radius_update_ms) {
+            if(radius_direction > 0 || radius > 0) {
+                radius += radius_direction;
+                redraw_circle = true;
+            }
+            next_radius_update_ms = current_time_ms + RADIUS_UPDATE_INTERVAL_MS;
+        }
+
         // TEMPORARY: Erase the previous circle before drawing the updated radius.
         if(redraw_circle) {
             canvas->use_centered_coordinates(false);
@@ -324,8 +407,9 @@ static int run_app() {
                 }
             }
             canvas->use_centered_coordinates();
-            canvas->set_pixel(0, 0, colors::red());
+            // canvas->set_pixel(0, 0, colors::red());
             draw_circle(canvas.get(), 0, 0, radius);
+            draw_perfect_circle(canvas.get(), 0, 0, radius);
             redraw_circle = false;
         }
 
@@ -335,25 +419,50 @@ static int run_app() {
             break;
         }
 
+        // TEMPORARY: Wake for the next radius update even when no events arrive.
+        const Uint64 wait_start_ms = SDL_GetTicks();
+        const int wait_timeout_ms = radius_direction == 0 ? -1
+            : next_radius_update_ms > wait_start_ms ? int(next_radius_update_ms - wait_start_ms) : 0;
         SDL_Event event;
-        if(!SDL_WaitEvent(&event)) {
-            SDL_Log("Could not wait for an event: %s", SDL_GetError());
-            exit_code = 1;
-            break;
+        SDL_ClearError();
+        if(!SDL_WaitEventTimeout(&event, wait_timeout_ms)) {
+            if(*SDL_GetError() != '\0') {
+                SDL_Log("Could not wait for an event: %s", SDL_GetError());
+                exit_code = 1;
+                break;
+            }
+            continue;
         }
         if(event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
             break;
         }
-        // TEMPORARY: Adjust once per key press; keep the radius nonnegative.
+        // TEMPORARY: Track held arrows independently of operating-system key repeat.
         if(event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
             if(event.key.key == SDLK_UP) {
+                up_pressed = true;
+                next_radius_update_ms = SDL_GetTicks();
+            }
+            else if(event.key.key == SDLK_DOWN) {
+                down_pressed = true;
+                next_radius_update_ms = SDL_GetTicks();
+            }
+            // TEMPORARY: Left/right fine tuning changes the radius once per press.
+            else if(event.key.key == SDLK_RIGHT) {
                 ++radius;
                 redraw_circle = true;
             }
-            else if(event.key.key == SDLK_DOWN && radius > 0) {
+            else if(event.key.key == SDLK_LEFT && radius > 0) {
                 --radius;
                 redraw_circle = true;
             }
+        }
+        else if(event.type == SDL_EVENT_KEY_UP) {
+            if(event.key.key == SDLK_UP) { up_pressed = false; }
+            else if(event.key.key == SDLK_DOWN) { down_pressed = false; }
+        }
+        else if(event.type == SDL_EVENT_WINDOW_FOCUS_LOST) {
+            up_pressed = false;
+            down_pressed = false;
         }
     }
 
