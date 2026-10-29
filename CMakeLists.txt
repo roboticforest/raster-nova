@@ -7,7 +7,7 @@
 ################################################################################
 
 cmake_minimum_required(VERSION 4.0)
-project(raster-nova VERSION 0.6.0)
+project(raster-nova VERSION 0.7.0)
 
 message("╔════════════════════════════════════════════════════════════════════╗")
 message("║ RASTER NOVA                                                        ║")
