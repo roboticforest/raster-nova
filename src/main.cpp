@@ -183,6 +183,53 @@ void xiaolin_wu_line(Canvas* canvas, const double start_x, const double start_y,
     }
 }
 
+void draw_circle(Canvas* canvas, std::int32_t center_x, std::int32_t center_y, std::int32_t radius) {
+    Color quadrant_1 = colors::red();
+    Color quadrant_2 = colors::green();
+    Color quadrant_3 = colors::blue();
+    Color quadrant_4 = colors::cyan();
+    Color quadrant_5 = colors::yellow();
+    Color quadrant_6 = colors::magenta();
+    Color quadrant_7 = colors::white();
+    Color quadrant_8 = colors::orange();
+
+    quadrant_1.alpha(0.25);
+    quadrant_2.alpha(0.25);
+    quadrant_3.alpha(0.25);
+    quadrant_4.alpha(0.25);
+    quadrant_5.alpha(0.25);
+    quadrant_6.alpha(0.25);
+    quadrant_7.alpha(0.25);
+    quadrant_8.alpha(0.25);
+
+    // BUG: Initial pixel draw causes overdraw.
+    // BUG: When there's a diagonal pixel, overdraw occurs.
+    std::int32_t x = 0;
+    std::int32_t y = -radius;
+    std::int32_t decider = -radius;
+
+
+    while(x < -y) {
+        if(decider > 0) {
+            y += 1;
+            decider += 2 * (x + y) + 1;
+        }
+        else {
+            decider += 2 * x + 1;
+        }
+
+        canvas->set_pixel(center_x + x, center_y + y, quadrant_1); canvas->show(); // Bottom (moving right) [lower-right diagonal]
+        canvas->set_pixel(center_x + x, center_y - y, quadrant_2); canvas->show(); // Top (moving right) [upper-right diagonal]
+        canvas->set_pixel(center_x - x, center_y + y, quadrant_3); canvas->show(); // Bottom, again (moving left) [lower-left diagonal]
+        canvas->set_pixel(center_x - x, center_y - y, quadrant_4); canvas->show(); // Top, again (moving left) [upper-left diagonal]
+        canvas->set_pixel(center_x + y, center_y + x, quadrant_5); canvas->show(); // Left (moving up) [UL again, diagonal]
+        canvas->set_pixel(center_x + y, center_y - x, quadrant_6); canvas->show(); // Left, again (moving down) [LL again, diagonal]
+        canvas->set_pixel(center_x - y, center_y + x, quadrant_7); canvas->show(); // Right (moving up) [UR again, diagonal]
+        canvas->set_pixel(center_x - y, center_y - x, quadrant_8); canvas->show(); // Right, again (moving down) [LR again, diagonal]
+        x += 1;
+    }
+}
+
 
 /** @brief Creates the display resources and runs the pixel demo. SDL must be initialized. */
 static int run_app() {
@@ -244,26 +291,44 @@ static int run_app() {
     //bresenham_line(canvas.get(), 5,-5, 11,-11);   // diagonal lower right
     //bresenham_line(canvas.get(), 2, -1, 13, -4);  // shallow lower right
 
-    xiaolin_wu_line(canvas.get(), 5,0, 11,0);      // horizontal straight right
-    xiaolin_wu_line(canvas.get(), 2, 1, 13, 4);    // shallow upper right
-    xiaolin_wu_line(canvas.get(), 5,5, 11,11);     // diagonal upper right
-    xiaolin_wu_line(canvas.get(), 1,2, 4,13);      // steep upper right
-    xiaolin_wu_line(canvas.get(), 0,5, 0,11);      // vertical up
-    xiaolin_wu_line(canvas.get(), -1,2, -4,13);    // steep upper left
-    xiaolin_wu_line(canvas.get(), -5,5, -11,11);   // diagonal upper left
-    xiaolin_wu_line(canvas.get(), -2,1, -13,4);    // shallow upper left
-    xiaolin_wu_line(canvas.get(), -5,0, -11,0);    // horizontal straight left
-    xiaolin_wu_line(canvas.get(), -2,-1, -13,-4);  // shallow lower left
-    xiaolin_wu_line(canvas.get(), -5,-5, -11,-11); // diagonal lower left
-    xiaolin_wu_line(canvas.get(), -1,-2, -4,-13);  // steep lower left
-    xiaolin_wu_line(canvas.get(), 0,-5, 0,-11);    // vertical down
-    xiaolin_wu_line(canvas.get(), 1,-2, 4,-13);    // steep lower right
-    xiaolin_wu_line(canvas.get(), 5,-5, 11,-11);   // diagonal lower right
-    xiaolin_wu_line(canvas.get(), 2, -1, 13, -4);  // shallow lower right
+    //xiaolin_wu_line(canvas.get(), 5,0, 11,0);      // horizontal straight right
+    //xiaolin_wu_line(canvas.get(), 2, 1, 13, 4);    // shallow upper right
+    //xiaolin_wu_line(canvas.get(), 5,5, 11,11);     // diagonal upper right
+    //xiaolin_wu_line(canvas.get(), 1,2, 4,13);      // steep upper right
+    //xiaolin_wu_line(canvas.get(), 0,5, 0,11);      // vertical up
+    //xiaolin_wu_line(canvas.get(), -1,2, -4,13);    // steep upper left
+    //xiaolin_wu_line(canvas.get(), -5,5, -11,11);   // diagonal upper left
+    //xiaolin_wu_line(canvas.get(), -2,1, -13,4);    // shallow upper left
+    //xiaolin_wu_line(canvas.get(), -5,0, -11,0);    // horizontal straight left
+    //xiaolin_wu_line(canvas.get(), -2,-1, -13,-4);  // shallow lower left
+    //xiaolin_wu_line(canvas.get(), -5,-5, -11,-11); // diagonal lower left
+    //xiaolin_wu_line(canvas.get(), -1,-2, -4,-13);  // steep lower left
+    //xiaolin_wu_line(canvas.get(), 0,-5, 0,-11);    // vertical down
+    //xiaolin_wu_line(canvas.get(), 1,-2, 4,-13);    // steep lower right
+    //xiaolin_wu_line(canvas.get(), 5,-5, 11,-11);   // diagonal lower right
+    //xiaolin_wu_line(canvas.get(), 2, -1, 13, -4);  // shallow lower right
+
+    // TEMPORARY: Keyboard-controlled radius for experimenting with circle drawing.
+    std::int32_t radius = 10;
+    bool redraw_circle = true;
 
     // Core App Loop
     int exit_code = 0;
     while(true) {
+        // TEMPORARY: Erase the previous circle before drawing the updated radius.
+        if(redraw_circle) {
+            canvas->use_centered_coordinates(false);
+            for(int y = 0; y < canvas_height; ++y) {
+                for(int x = 0; x < canvas_width; ++x) {
+                    canvas->set_pixel(x, y, colors::black());
+                }
+            }
+            canvas->use_centered_coordinates();
+            canvas->set_pixel(0, 0, colors::red());
+            draw_circle(canvas.get(), 0, 0, radius);
+            redraw_circle = false;
+        }
+
         if(!canvas->show()) {
             SDL_Log("Could not show canvas: %s", SDL_GetError());
             exit_code = 1;
@@ -278,6 +343,17 @@ static int run_app() {
         }
         if(event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
             break;
+        }
+        // TEMPORARY: Adjust once per key press; keep the radius nonnegative.
+        if(event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
+            if(event.key.key == SDLK_UP) {
+                ++radius;
+                redraw_circle = true;
+            }
+            else if(event.key.key == SDLK_DOWN && radius > 0) {
+                --radius;
+                redraw_circle = true;
+            }
         }
     }
 
